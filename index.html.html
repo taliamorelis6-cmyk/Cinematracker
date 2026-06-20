@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CinéTracker</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CinéTracker">
+<meta name="theme-color" content="#0d0010">
+<style>
+:root{--bg:#0d0010;--violet2:#5a0080;--orange:#c45c00;--orange2:#ff8c00;--rose:#ff6fa8;--blue:#1a6fff;--text:#f5e6ff;--text2:#c9a0e8;--card:rgba(45,0,87,0.55);--glass:rgba(90,0,128,0.25);--border:rgba(255,140,0,0.25);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden;}
+@media(max-width:600px){
+  *{max-width:100%;box-sizing:border-box;}
+  img{max-width:100%;height:auto;}
+  #homeContent h1{font-size:2.4rem;}
+  #topBar{padding:10px 12px;gap:8px;}
+  #btnRoulette,#btnDVD{width:38px;height:38px;font-size:1.1rem;}
+  #searchInput{font-size:.9rem;padding:8px 36px 8px 34px;}
+  #mainContent{padding:14px;}
+  #statsBar{gap:6px;}
+  .statCard{padding:8px 4px;}
+  .statCard .sNum{font-size:1.2rem;}
+  .statCard .sLbl{font-size:.6rem;}
+  #filmBody{padding:50px 14px 24px;overflow-x:hidden;}
+  #filmTitle{font-size:1.15rem;word-break:break-word;}
+  #filmBg{height:160px;}
+  #filmPoster{width:72px;height:108px;bottom:-36px;left:14px;}
+  #filmEditSection{overflow-x:hidden;max-width:100vw;}
+  #similScroll{max-width:calc(100vw - 28px);}
+  .similCard{width:70px;flex-shrink:0;}
+  .similCard img{width:70px;height:105px;}
+  .sBnt{padding:6px 9px;font-size:.75rem;}
+  .star{font-size:1.3rem;}
+  .modalBox{padding:16px;width:95%;}
+  #colHeader{padding:10px 12px;}
+  #colBody{padding:8px 10px;padding-bottom:80px;}
+  .filmItem{padding:8px 10px;}
+  #dvdShelf{padding:10px;}
+  .dvdCase{width:60px;}
+  .dvdCase img{width:60px;height:90px;}
+  .recoCard{width:85px;}
+  .recoCard img{width:85px;height:128px;}
+  #rouletteBox{padding:16px;}
+  #rouletteResult{width:120px;height:180px;}
+}
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.page{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;align-items:center;overflow-y:auto;}
+.page.active{display:flex;}
+#pageHome{justify-content:center;cursor:pointer;z-index:10;}
+#homeContent{text-align:center;pointer-events:none;position:relative;z-index:2;}
+#homeContent h1{font-size:3.5rem;font-weight:900;background:linear-gradient(135deg,var(--orange2),var(--rose),var(--violet2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;}
+#homeContent p{color:var(--text2);margin-top:.5rem;font-size:1.1rem;}
+#homeContent .hint{margin-top:2rem;font-size:.85rem;color:var(--orange);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+#homeParticles{position:fixed;inset:0;pointer-events:none;z-index:1;}
+.hParticle{position:absolute;border-radius:50%;animation:floatP linear infinite;}
+@keyframes floatP{0%{transform:translateY(100vh) scale(0);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(-10vh) scale(1.2);opacity:0;}}
+#filmStrip{position:fixed;bottom:0;left:0;right:0;display:flex;gap:6px;padding:8px;overflow:hidden;pointer-events:none;z-index:1;mask-image:linear-gradient(to right,transparent,black 10%,black 90%,transparent);}
+.stripPoster{width:60px;height:90px;object-fit:cover;border-radius:6px;opacity:.3;flex-shrink:0;filter:saturate(0.5);}
+#pageMain{padding:0;}
+#topBar{width:100%;display:flex;align-items:center;gap:12px;padding:16px 20px;background:rgba(13,0,16,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+#btnRoulette,#btnDVD{background:linear-gradient(135deg,var(--violet2),var(--orange));border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:1.3rem;cursor:pointer;flex-shrink:0;}
+#btnDVD{background:linear-gradient(135deg,var(--orange),var(--rose));}
+#searchWrap{flex:1;position:relative;}
+#searchInput{width:100%;padding:10px 44px 10px 40px;border-radius:24px;border:1px solid var(--border);background:var(--glass);color:var(--text);font-size:1rem;outline:none;}
+#searchInput::placeholder{color:var(--text2);}
+#searchIcon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);pointer-events:none;}
+#btnCamera{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;padding:2px;}
+#searchResults{position:absolute;top:110%;left:0;right:0;background:rgba(20,0,40,0.97);border:1px solid var(--border);border-radius:16px;max-height:400px;overflow-y:auto;z-index:200;display:none;}
+.srItem{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);}
+.srItem:hover{background:rgba(255,140,0,0.1);}
+.srItem img{width:36px;height:54px;object-fit:cover;border-radius:4px;}
+.srItem .srInfo{flex:1;}.srItem .srTitle{font-weight:600;font-size:.95rem;}.srItem .srYear{font-size:.8rem;color:var(--text2);}
+.srAdd{background:linear-gradient(135deg,var(--orange),var(--violet2));border:none;color:#fff;padding:4px 12px;border-radius:12px;cursor:pointer;font-size:.8rem;white-space:nowrap;}
+.srInDb{background:transparent;border:3px solid var(--blue);border-radius:50%;width:24px;height:24px;flex-shrink:0;cursor:default;}
+#mainContent{width:100%;padding:20px;}
+#statsBar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.statCard{flex:1;min-width:80px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;}
+.statCard .sNum{font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,var(--orange2),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.statCard .sLbl{font-size:.7rem;color:var(--text2);margin-top:2px;}
+#recoSection{width:100%;margin-bottom:20px;}
+#recoHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+#recoHeader h2{font-size:1rem;color:var(--text2);}
+#btnMoreRecos{background:linear-gradient(135deg,var(--violet2),var(--orange));border:none;color:#fff;padding:5px 14px;border-radius:12px;font-size:.8rem;cursor:pointer;}
+#recoScroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;}
+#recoScroll::-webkit-scrollbar{height:4px;}
+#recoScroll::-webkit-scrollbar-thumb{background:var(--orange);border-radius:2px;}
+.recoCard{flex-shrink:0;width:100px;cursor:pointer;transition:.2s;position:relative;}
+.recoCard:hover{transform:scale(1.05);}
+.recoCard img{width:100px;height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);}
+.recoCard p{font-size:.75rem;text-align:center;margin-top:4px;color:var(--text2);line-height:1.2;}
+.recoBtnInfo{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);border:none;color:#fff;border-radius:50%;width:22px;height:22px;font-size:.7rem;cursor:pointer;}
+#btnGoCollection{background:linear-gradient(135deg,var(--violet2),var(--orange));border:none;color:#fff;padding:14px 24px;border-radius:20px;font-size:1rem;cursor:pointer;width:100%;margin-bottom:12px;font-weight:700;}
+#btnGoRoulette{background:var(--glass);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:20px;font-size:1rem;cursor:pointer;width:100%;}
+#pageCollection{padding:0;}
+#colHeader{width:100%;padding:14px 16px;background:rgba(13,0,16,0.9);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
+#colSearchInput{width:100%;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--glass);color:var(--text);outline:none;margin-bottom:8px;}
+#viewToggle{display:flex;gap:6px;margin-bottom:8px;}
+.vBtn{flex:1;padding:7px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:.85rem;}
+.vBtn.active{background:linear-gradient(135deg,var(--orange),var(--violet2));color:#fff;border-color:transparent;}
+#colBody{width:100%;padding:12px 16px;padding-bottom:80px;}
+#selectionBar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(13,0,16,0.97);border-top:1px solid var(--border);padding:12px 16px;gap:8px;flex-wrap:wrap;}
+#selectionBar.show{display:flex;align-items:center;}
+#selCount{flex:1;font-size:.9rem;color:var(--orange2);font-weight:700;}
+.selBtn{padding:7px 14px;border-radius:14px;border:none;cursor:pointer;font-size:.8rem;font-weight:600;}
+#selBtnMove{background:linear-gradient(135deg,var(--orange),var(--violet2));color:#fff;}
+#selBtnDel{background:rgba(255,60,60,0.2);color:#ff6b6b;border:1px solid rgba(255,60,60,0.3);}
+#selBtnCancel{background:var(--glass);color:var(--text2);border:1px solid var(--border);}
+.filmItem{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border-radius:12px;margin-bottom:6px;cursor:pointer;border:1px solid transparent;transition:.2s;}
+.filmItem:hover{border-color:var(--orange);}
+.filmItem.selected{border-color:var(--orange);background:rgba(255,140,0,0.15);}
+.filmItem.future{opacity:.6;border:1px dashed var(--orange2);}
+.filmItem img{width:36px;height:54px;object-fit:cover;border-radius:6px;}
+.filmItem .fInfo{flex:1;}.filmItem .fTitle{font-weight:600;font-size:.9rem;}.filmItem .fSub{font-size:.75rem;color:var(--text2);}
+.futureBadge{font-size:.65rem;background:var(--orange);color:#000;padding:1px 6px;border-radius:8px;font-weight:700;margin-left:4px;}
+.filmCheckbox{width:18px;height:18px;accent-color:var(--orange2);cursor:pointer;flex-shrink:0;display:none;}
+.catBlock{margin-bottom:16px;}
+.catHeader{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:linear-gradient(90deg,var(--violet2),var(--orange));border-radius:10px;margin-bottom:6px;cursor:pointer;}
+.catHeader span{font-weight:700;font-size:.9rem;}.catHeader .catCount{font-size:.75rem;opacity:.8;}
+.groupBlock{margin-left:12px;margin-bottom:8px;}
+.groupHeader{display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(255,140,0,0.12);border-radius:8px;margin-bottom:4px;cursor:pointer;border-left:3px solid var(--orange);}
+.groupHeader span{font-size:.85rem;font-weight:600;}
+/* FICHE FILM */
+/* FICHE FILM RESPONSIVE */
+#pageFilm{padding:0;}
+#filmHeader{width:100%;position:relative;}
+#filmBg{width:100%;height:220px;object-fit:cover;filter:blur(8px) brightness(.4);}
+#filmPoster{position:absolute;bottom:-50px;left:20px;width:90px;height:135px;object-fit:cover;border-radius:10px;border:3px solid var(--orange);box-shadow:0 8px 24px rgba(0,0,0,.6);}
+#filmBack{position:absolute;top:14px;left:14px;background:rgba(0,0,0,.5);border:none;color:#fff;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:1.1rem;}
+#filmBody{padding:60px 20px 30px;}
+#filmTitleRow{display:flex;align-items:flex-start;gap:10px;margin-bottom:4px;}
+#filmTitle{font-size:1.5rem;font-weight:900;flex:1;word-break:break-word;}
+#filmMeta{font-size:.85rem;color:var(--text2);margin-bottom:.6rem;}
+.detailSection{margin-bottom:16px;}
+.detailSection label{font-size:.8rem;color:var(--orange2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;}
+.stars{display:flex;gap:6px;flex-wrap:wrap;}
+.star{font-size:1.6rem;cursor:pointer;filter:grayscale(1);transition:.2s;}
+.star.on{filter:none;}
+#filmComment{width:100%;background:var(--glass);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:.9rem;resize:vertical;min-height:80px;outline:none;}
+.statusBtns{display:flex;gap:6px;flex-wrap:wrap;}
+.sBnt{padding:7px 12px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:.82rem;transition:.2s;white-space:nowrap;}
+.sBnt.active{background:linear-gradient(135deg,var(--orange),var(--violet2));color:#fff;border-color:transparent;}
+.sBnt.dvdBtn.active{background:linear-gradient(135deg,#b8860b,var(--violet2));}
+#catChangeRow{display:flex;align-items:center;gap:8px;margin-top:8px;}
+#catChangeRow span{font-size:.85rem;color:var(--text2);}
+#filmCatSelect{background:var(--glass);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:5px 10px;font-size:.85rem;outline:none;cursor:pointer;flex:1;max-width:100%;}
+#resumeBox{background:var(--glass);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:.9rem;color:var(--text2);line-height:1.6;display:none;margin-top:8px;}
+#btnShowResume{padding:7px 14px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:.85rem;}
+#btnShowResume.active{background:linear-gradient(135deg,var(--violet2),var(--orange));color:#fff;border-color:transparent;}
+#filmReadonlyBanner{background:rgba(255,140,0,0.1);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+#filmReadonlyBanner span{font-size:.85rem;color:var(--text2);}
+#btnAddFromFiche{background:linear-gradient(135deg,var(--orange),var(--violet2));border:none;color:#fff;padding:7px 16px;border-radius:12px;cursor:pointer;font-size:.85rem;white-space:nowrap;}
+.seasonRow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.seasonRow input{accent-color:var(--orange2);width:16px;height:16px;cursor:pointer;}
+#similSection{margin-top:24px;}
+#similSection h3{font-size:.95rem;color:var(--orange2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+#similScroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;}
+#similScroll::-webkit-scrollbar{height:4px;}
+#similScroll::-webkit-scrollbar-thumb{background:var(--orange);border-radius:2px;}
+.similCard{flex-shrink:0;width:80px;cursor:pointer;transition:.2s;position:relative;}
+.similCard:hover{transform:scale(1.05);}
+.similCard img{width:80px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border);}
+.similCard p{font-size:.65rem;text-align:center;margin-top:4px;color:var(--text2);line-height:1.2;}
+.similInfo{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);border:none;color:#fff;border-radius:50%;width:20px;height:20px;font-size:.65rem;cursor:pointer;}
+.similQuickAdd{position:absolute;top:4px;left:4px;border:none;border-radius:50%;width:20px;height:20px;font-size:.85rem;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.similQuickAdd.notInDb{background:linear-gradient(135deg,var(--orange),var(--violet2));color:#fff;}
+.similQuickAdd.inDb{background:transparent;border:3px solid var(--blue);cursor:default;}
+@media(max-width:600px){
+  #filmBg{height:150px;}
+  #filmPoster{width:72px;height:108px;bottom:-36px;left:14px;}
+  #filmBody{padding:46px 14px 24px;}
+  #filmTitle{font-size:1.1rem;}
+  #filmMeta{font-size:.8rem;}
+  .sBnt{padding:6px 9px;font-size:.75rem;}
+  .star{font-size:1.3rem;}
+  #similSection h3{font-size:.8rem;}
+  .similCard{width:70px;}
+  .similCard img{width:70px;height:105px;}
+}
+#pageDVD{padding:0;}
+#dvdHeader{width:100%;padding:14px 16px;background:rgba(13,0,16,0.9);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+#dvdHeader h2{flex:1;font-size:1.2rem;}#dvdCount{font-size:.85rem;color:var(--orange2);}
+#dvdShelf{display:flex;flex-wrap:wrap;gap:10px;padding:16px;}
+.dvdCase{width:70px;cursor:pointer;transition:.2s;}.dvdCase:hover{transform:scale(1.05) rotate(-2deg);}
+.dvdCase img{width:70px;height:105px;object-fit:cover;border-radius:6px;border:2px solid var(--orange);box-shadow:3px 3px 12px rgba(0,0,0,.5);}
+.dvdCase p{font-size:.6rem;text-align:center;margin-top:3px;color:var(--text2);line-height:1.2;}
+#pageRoulette{justify-content:center;align-items:center;}
+#rouletteBox{width:90%;max-width:400px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:24px;text-align:center;}
+#rouletteBox h2{font-size:1.3rem;margin-bottom:16px;}
+#rouletteResult{width:150px;height:225px;margin:0 auto 16px;border-radius:12px;object-fit:cover;border:3px solid var(--orange);display:none;}
+#rouletteTitle{font-size:1.1rem;font-weight:700;margin-bottom:8px;min-height:1.5em;}
+.rouletteOpts{display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;}
+.rOpt{padding:7px 14px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:.85rem;}
+.rOpt.active{background:linear-gradient(135deg,var(--orange),var(--violet2));color:#fff;border-color:transparent;}
+#catSelect{width:100%;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text);outline:none;margin-bottom:12px;display:none;}
+#btnSpin{background:linear-gradient(135deg,var(--orange2),var(--violet2));border:none;color:#fff;padding:12px 32px;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:700;}
+#btnRouBack{margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:8px 20px;border-radius:14px;cursor:pointer;}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal.show{display:flex;}
+.modalBox{background:linear-gradient(135deg,#1a003a,#2d0057);border:1px solid var(--border);border-radius:20px;padding:24px;width:90%;max-width:440px;max-height:88vh;overflow-y:auto;position:relative;z-index:1;}
+.modalBox h3{margin-bottom:12px;font-size:1.1rem;}
+.collectionList{display:flex;flex-direction:column;gap:4px;margin:10px 0;}
+.colFilmRow{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--glass);border-radius:10px;cursor:pointer;transition:.15s;}
+.colFilmRow:hover{background:rgba(255,140,0,0.15);}
+.colFilmRow img{width:30px;height:45px;object-fit:cover;border-radius:4px;}
+.colFilmRow .cfTitle{flex:1;font-size:.85rem;}
+.colFilmRow .cfBtns{display:flex;gap:6px;align-items:center;}
+.cfFiche{background:linear-gradient(135deg,var(--violet2),var(--orange2));border:none;color:#fff;padding:3px 8px;border-radius:8px;cursor:pointer;font-size:.72rem;white-space:nowrap;}
+.cfFuture{font-size:.65rem;background:var(--orange);color:#000;padding:1px 5px;border-radius:6px;}
+.modalSelect{width:100%;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text);outline:none;margin:6px 0;}
+.modalInput{width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text);outline:none;margin:4px 0;font-size:.9rem;}
+.modalInput::placeholder{color:var(--text2);}
+.modalTextarea{width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text);outline:none;margin:4px 0;font-size:.9rem;resize:vertical;min-height:70px;}
+.modalLabel{font-size:.8rem;color:var(--orange2);text-transform:uppercase;letter-spacing:1px;display:block;margin-top:10px;margin-bottom:2px;}
+.modalBtns{display:flex;gap:8px;margin-top:14px;}
+.modalBtns button{flex:1;padding:10px;border-radius:14px;border:none;cursor:pointer;font-weight:700;font-size:.9rem;}
+.btnConfirm{background:linear-gradient(135deg,var(--orange),var(--violet2));color:#fff;}
+.btnCancel{background:var(--glass);color:var(--text2);border:1px solid var(--border);}
+.dvdCheckRow{display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 10px;background:var(--glass);border-radius:10px;}
+.dvdCheckRow input{accent-color:var(--orange2);width:16px;height:16px;cursor:pointer;}
+.dvdCheckRow label{font-size:.85rem;cursor:pointer;flex:1;}
+.navBack{background:transparent;border:none;color:var(--text2);font-size:.9rem;cursor:pointer;padding:6px 0;}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--orange),var(--violet2));color:#fff;padding:10px 22px;border-radius:20px;font-size:.9rem;z-index:999;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;}
+/* RESPONSIVE MOBILE */
+@media(max-width:600px){
+  #homeContent h1{font-size:2.4rem;}
+  #topBar{padding:10px 12px;gap:8px;}
+  #btnRoulette,#btnDVD{width:38px;height:38px;font-size:1.1rem;}
+  #searchInput{font-size:.9rem;padding:8px 36px 8px 34px;}
+  #mainContent{padding:14px;}
+  #statsBar{gap:6px;}
+  .statCard{padding:8px 4px;}
+  .statCard .sNum{font-size:1.2rem;}
+  .statCard .sLbl{font-size:.6rem;}
+  #filmBody{padding:50px 14px 24px;}
+  #filmTitle{font-size:1.2rem;}
+  .sBnt{padding:6px 10px;font-size:.78rem;}
+  .modalBox{padding:16px;width:95%;}
+  #colHeader{padding:10px 12px;}
+  #colBody{padding:8px 10px;padding-bottom:80px;}
+  .filmItem{padding:8px 10px;}
+  #dvdShelf{padding:10px;}
+  .dvdCase{width:60px;}
+  .dvdCase img{width:60px;height:90px;}
+  .recoCard{width:85px;}
+  .recoCard img{width:85px;height:128px;}
+  #rouletteBox{padding:16px;}
+  #rouletteResult{width:120px;height:180px;}
+  #filmBg{height:160px;}
+  #filmPoster{width:70px;height:105px;bottom:-38px;}
+}
+
+/* SCANNER */
+#scannerOverlay{position:fixed;inset:0;background:#000;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+#scannerOverlay.show{display:flex;}
+#scannerVideo{width:100%;max-width:500px;border-radius:12px;max-height:50vh;object-fit:cover;}
+#scannerFrame{width:220px;height:220px;border:3px solid var(--orange);border-radius:12px;position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);box-shadow:0 0 0 9999px rgba(0,0,0,.6);pointer-events:none;}
+#scannerMsg{color:#fff;margin-top:16px;font-size:.9rem;text-align:center;padding:0 20px;}
+#scannerBtns{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;justify-content:center;}
+#btnScanBarcode{background:linear-gradient(135deg,var(--orange),var(--violet2));border:none;color:#fff;padding:10px 16px;border-radius:14px;cursor:pointer;font-size:.85rem;}
+#btnScanPhoto{background:var(--glass);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:14px;cursor:pointer;font-size:.85rem;}
+#btnCloseScanner{background:transparent;border:1px solid var(--border);color:var(--text2);padding:10px 16px;border-radius:14px;cursor:pointer;font-size:.85rem;}
+#photoInput{display:none;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--violet2);border-radius:2px;}
+select option{background:#1a003a;}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<div id="toast"></div>
+
+<div id="pageHome" class="page active">
+  <div id="homeParticles"></div>
+  <div id="homeContent">
+    <h1>🎬 CinéTracker</h1>
+    <p>Votre univers cinématographique personnel</p>
+    <div class="hint">✨ Cliquez n'importe où pour entrer ✨</div>
+  </div>
+  <div id="filmStrip"></div>
+</div>
+
+<div id="pageMain" class="page">
+  <div id="topBar">
+    <button id="btnRoulette">🎲</button>
+    <div id="searchWrap">
+      <span id="searchIcon">🔍</span>
+      <input id="searchInput" type="text" placeholder="Rechercher un film ou une série...">
+      <button id="btnCamera">📷</button>
+      <div id="searchResults"></div>
+    </div>
+    <button id="btnDVD">📀</button>
+  </div>
+  <div id="mainContent">
+    <div id="statsBar"></div>
+    <div id="recoSection">
+      <div id="recoHeader">
+        <h2>✨ Recommandés pour vous</h2>
+        <button id="btnMoreRecos">+ Voir plus</button>
+      </div>
+      <div id="recoScroll"></div>
+    </div>
+    <button id="btnGoCollection">📂 Mes Collections</button>
+    <button id="btnGoRoulette" style="margin-top:12px;">🎲 Roulette de films</button>
+  </div>
+</div>
+
+<div id="pageCollection" class="page">
+  <div id="colHeader">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <button class="navBack" id="colBack">←</button>
+      <h2 style="margin:0">📂 Ma Collection</h2>
+    </div>
+    <input id="colSearchInput" type="text" placeholder="Rechercher dans la collection...">
+    <div id="viewToggle">
+      <button class="vBtn active" id="vBtn1">📋 Liste</button>
+      <button class="vBtn" id="vBtn2">🗂️ Catégories</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="btnAddCat" style="flex:1;background:linear-gradient(135deg,var(--violet2),var(--orange));border:none;color:#fff;padding:8px;border-radius:12px;cursor:pointer;font-size:.85rem;">+ Catégorie</button>
+      <button id="btnManuel" style="flex:1;background:linear-gradient(135deg,var(--orange),var(--rose));border:none;color:#fff;padding:8px;border-radius:12px;cursor:pointer;font-size:.85rem;">✏️ Manuel</button>
+      <button id="btnSelect" style="flex:1;background:var(--glass);border:1px solid var(--border);color:var(--text2);padding:8px;border-radius:12px;cursor:pointer;font-size:.85rem;">☑️ Sélect.</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="btnExport" style="flex:1;background:var(--glass);border:1px solid var(--border);color:var(--text2);padding:7px;border-radius:12px;cursor:pointer;font-size:.78rem;">📤 Exporter</button>
+      <label style="flex:1;background:var(--glass);border:1px solid var(--border);color:var(--text2);padding:7px;border-radius:12px;cursor:pointer;font-size:.78rem;text-align:center;">📥 Importer<input type="file" id="importFile" accept=".json" style="display:none"></label>
+    </div>
+  </div>
+  <div id="colBody"></div>
+</div>
+
+<div id="selectionBar">
+  <span id="selCount">0 sélectionné(s)</span>
+  <button class="selBtn" id="selBtnMove">📂 Déplacer</button>
+  <button class="selBtn" id="selBtnDel">🗑️ Supprimer</button>
+  <button class="selBtn" id="selBtnCancel">Annuler</button>
+</div>
+
+<!-- FICHE FILM (collection + lecture seule) -->
+<div id="pageFilm" class="page">
+  <div id="filmHeader">
+    <img id="filmBg" src="" alt="">
+    <button id="filmBack">←</button>
+    <img id="filmPoster" src="" alt="">
+  </div>
+  <div id="filmBody">
+    <div id="filmTitleRow">
+      <div id="filmTitle"></div>
+    </div>
+    <div id="filmMeta"></div>
+    <!-- Bannière lecture seule -->
+    <div id="filmReadonlyBanner" style="display:none;">
+      <span>👁️ Ce film n'est pas encore dans votre collection</span>
+      <button id="btnAddFromFiche">+ Ajouter</button>
+    </div>
+    <div id="resumeSection" class="detailSection">
+      <button id="btnShowResume">📖 Afficher le résumé</button>
+      <div id="resumeBox"></div>
+    </div>
+    <div id="filmEditSection">
+      <div class="detailSection">
+        <label>Statut &amp; Possession</label>
+        <div class="statusBtns">
+          <button class="sBnt" data-s="voir">👀 À voir</button>
+          <button class="sBnt" data-s="encours">🎬 En cours</button>
+          <button class="sBnt" data-s="vu">✅ Vu</button>
+          <button class="sBnt dvdBtn">📀 Possédé en DVD</button>
+        </div>
+        <div id="catChangeRow">
+          <span>📂</span>
+          <select id="filmCatSelect"></select>
+        </div>
+      </div>
+      <div class="detailSection">
+        <label>Note</label>
+        <div class="stars" id="starRow">
+          <span class="star" data-i="1">⭐</span><span class="star" data-i="2">⭐</span><span class="star" data-i="3">⭐</span><span class="star" data-i="4">⭐</span><span class="star" data-i="5">⭐</span>
+        </div>
+      </div>
+      <div class="detailSection">
+        <label>Commentaire</label>
+        <textarea id="filmComment" placeholder="Votre avis..."></textarea>
+      </div>
+      <div id="seasonsSection" class="detailSection" style="display:none">
+        <label>Saisons</label>
+        <div id="seasonsList"></div>
+      </div>
+    </div>
+    <div id="similSection">
+      <h3>✨ Films similaires</h3>
+      <div id="similScroll"></div>
+    </div>
+  </div>
+</div>
+
+<div id="pageDVD" class="page">
+  <div id="dvdHeader">
+    <button class="navBack" id="dvdBack">←</button>
+    <h2>📀 Ma Bibliothèque DVD</h2>
+    <span id="dvdCount"></span>
+  </div>
+  <div id="dvdShelf"></div>
+</div>
+
+<div id="pageRoulette" class="page">
+  <div id="rouletteBox">
+    <h2>🎲 Roulette Cinéma</h2>
+    <img id="rouletteResult" src="" alt="">
+    <div id="rouletteTitle">Quel film ce soir ?</div>
+    <div class="rouletteOpts">
+      <button class="rOpt active" id="rOptRandom">🎲 Au hasard</button>
+      <button class="rOpt" id="rOptCat">📂 Par catégorie</button>
+    </div>
+    <select id="catSelect"></select>
+    <button id="btnSpin">🎬 Lancer !</button><br>
+    <button id="btnRouBack">← Retour</button>
+  </div>
+</div>
+
+<!-- MODAL AJOUT TMDB -->
+<div id="modalAdd" class="modal">
+  <div class="modalBox">
+    <h3 id="modalTitle">Ajouter</h3>
+    <div id="collectionPreview"></div>
+    <span class="modalLabel">📂 Catégorie</span>
+    <select id="modalCatSel" class="modalSelect"></select>
+    <div class="modalBtns">
+      <button class="btnConfirm" id="btnConfirmAdd">✅ Ajouter</button>
+      <button class="btnCancel" id="btnCancelAdd">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MANUEL -->
+<div id="modalManuel" class="modal">
+  <div class="modalBox">
+    <h3>✏️ Ajouter manuellement</h3>
+    <span class="modalLabel">Titre *</span>
+    <input id="mTitle" class="modalInput" placeholder="Titre du film / série" type="text">
+    <span class="modalLabel">Année</span>
+    <input id="mYear" class="modalInput" placeholder="Ex : 1994" type="number">
+    <span class="modalLabel">Type</span>
+    <select id="mType" class="modalSelect"><option value="movie">🎬 Film</option><option value="tv">📺 Série</option></select>
+    <span class="modalLabel">Saisons (si série)</span>
+    <input id="mSeasons" class="modalInput" placeholder="Ex : 3" type="number" min="1">
+    <span class="modalLabel">Image (URL)</span>
+    <input id="mPoster" class="modalInput" placeholder="https://..." type="url">
+    <span class="modalLabel">Résumé</span>
+    <textarea id="mResume" class="modalTextarea" placeholder="Synopsis..."></textarea>
+    <span class="modalLabel">📂 Catégorie</span>
+    <select id="mCatSel" class="modalSelect"></select>
+    <div class="dvdCheckRow"><input type="checkbox" id="mDvd"><label for="mDvd">📀 Je possède ce film en DVD</label></div>
+    <div class="modalBtns">
+      <button class="btnConfirm" id="btnConfirmManuel">✅ Créer</button>
+      <button class="btnCancel" id="btnCancelManuel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUT RAPIDE -->
+<div id="modalQuickAdd" class="modal">
+  <div class="modalBox">
+    <h3 id="quickAddTitle">Ajout rapide</h3>
+    <span class="modalLabel">📂 Catégorie</span>
+    <select id="quickAddCatSel" class="modalSelect"></select>
+    <div class="dvdCheckRow"><input type="checkbox" id="quickAddDvd"><label for="quickAddDvd">📀 Je possède ce film en DVD</label></div>
+    <div class="modalBtns">
+      <button class="btnConfirm" id="quickAddConfirmBtn">✅ Ajouter</button>
+      <button class="btnCancel" id="btnCancelQuick">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DÉPLACER -->
+<div id="modalMove" class="modal">
+  <div class="modalBox">
+    <h3>📂 Déplacer vers...</h3>
+    <select id="moveCatSel" class="modalSelect"></select>
+    <div class="modalBtns">
+      <button class="btnConfirm" id="btnConfirmMove">✅ Déplacer</button>
+      <button class="btnCancel" id="btnCancelMove">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP RÉSUMÉ RECOS -->
+<div id="recoPopup" class="modal">
+  <div class="modalBox">
+    <h3 id="recoPopupTitle"></h3>
+    <p id="recoPopupDesc" style="color:var(--text2);font-size:.9rem;line-height:1.6;"></p>
+    <div class="modalBtns">
+      <button class="btnConfirm" id="recoPopupFiche">🎬 Voir la fiche</button>
+      <button class="btnConfirm" id="recoPopupAdd" style="background:linear-gradient(135deg,var(--violet2),var(--orange2));">+ Ajouter</button>
+      <button class="btnCancel" id="recoPopupClose">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCANNER -->
+<div id="scannerOverlay">
+  <video id="scannerVideo" autoplay playsinline muted></video>
+  <div id="scannerFrame"></div>
+  <div id="scannerMsg">Pointez vers un code-barres ou une affiche</div>
+  <div id="scannerBtns">
+    <button id="btnScanBarcode">📊 Code-barres</button>
+    <button id="btnScanPhoto">🖼️ Photo affiche</button>
+    <button id="btnCloseScanner">✕ Fermer</button>
+  </div>
+  <input type="file" id="photoInput" accept="image/*" capture="environment">
+</div>
+
+<script>
+// BRUME
+var canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d');
+var W,H,blobs=[];
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+resize();window.addEventListener('resize',resize);
+function makeBlob(){return{x:Math.random()*W,y:Math.random()*H,r:120+Math.random()*200,dx:(Math.random()-.5)*.4,dy:(Math.random()-.5)*.3,c:Math.random()<.5?'rgba(196,92,0,':'rgba(90,0,128,',a:.08+Math.random()*.12};}
+for(var i=0;i<12;i++)blobs.push(makeBlob());
+function drawBG(){ctx.clearRect(0,0,W,H);ctx.fillStyle='#0d0010';ctx.fillRect(0,0,W,H);blobs.forEach(function(b){var g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);g.addColorStop(0,b.c+b.a+')');g.addColorStop(1,b.c+'0)');ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();b.x+=b.dx;b.y+=b.dy;if(b.x<-b.r||b.x>W+b.r||b.y<-b.r||b.y>H+b.r)Object.assign(b,makeBlob());});requestAnimationFrame(drawBG);}
+drawBG();
+
+// PARTICULES
+(function(){var c=document.getElementById('homeParticles');var colors=['rgba(255,140,0,','rgba(255,111,168,','rgba(90,0,128,','rgba(255,200,100,'];for(var i=0;i<18;i++){var p=document.createElement('div');p.className='hParticle';var size=4+Math.random()*12;var col=colors[Math.floor(Math.random()*colors.length)];p.style.cssText='width:'+size+'px;height:'+size+'px;left:'+Math.random()*100+'%;background:'+col+'0.7);animation-duration:'+(4+Math.random()*8)+'s;animation-delay:'+Math.random()*6+'s;box-shadow:0 0 '+(size*2)+'px '+col+'0.4);';c.appendChild(p);}})();
+var stripPosters=['https://image.tmdb.org/t/p/w92/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg','https://image.tmdb.org/t/p/w92/3bhkrj58Vtu7enYsLS1LOI1lGbu.jpg','https://image.tmdb.org/t/p/w92/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg','https://image.tmdb.org/t/p/w92/nBNZadXqJSdt05SHLqgT0HuC5Gm.jpg'];
+var strip=document.getElementById('filmStrip');
+stripPosters.concat(stripPosters).forEach(function(url){var img=document.createElement('img');img.className='stripPoster';img.src=url;img.onerror=function(){img.style.display='none';};strip.appendChild(img);});
+
+// STATE
+var TMDB_KEY='8bf72ea9e49b80b3cbe5f19d1c233e80';
+var IMG='https://image.tmdb.org/t/p/w200';
+var db={categories:[],films:{}};
+var currentFilmId=null,currentView=1,rouMode='random';
+var selectMode=false,selectedIds={};
+var recoPage=1,autoSaveTimer=null;
+var modalFilms=[],quickFilmData=null;
+var recoPopupMovieId=null,recoPopupMovieType=null;
+var filmReadOnly=false,filmReadOnlyData=null;
+var scanMode='barcode',scanStream=null;
+
+function loadDB(){try{var s=localStorage.getItem('cinematracker');if(s)db=JSON.parse(s);}catch(e){}}
+function saveDB(){localStorage.setItem('cinematracker',JSON.stringify(db));}
+loadDB();
+
+// NAV
+var navStack=['pageHome'];
+function navigate(id){navStack.push(id);showPage(id);}
+function navigateBack(){navStack.pop();showPage(navStack[navStack.length-1]||'pageHome');}
+window.addEventListener('popstate',function(){navigateBack();});
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  if(id==='pageMain')renderStats();
+  if(id==='pageCollection'){if(selectMode)toggleSelectMode();renderCollection();}
+  if(id==='pageDVD')renderDVD();
+  if(id==='pageRoulette')renderRoulette();
+}
+function enterApp(){navStack=['pageHome','pageMain'];showPage('pageMain');}
+document.getElementById('pageHome').addEventListener('click',function(){enterApp();});
+
+// FERMETURE MODALES EN CLIQUANT DEHORS
+document.querySelectorAll('.modal').forEach(function(modal){
+  modal.addEventListener('click',function(e){
+    if(e.target===modal)closeModal(modal.id);
+  });
+});
+
+// BOUTONS
+document.getElementById('btnRoulette').addEventListener('click',function(){navigate('pageRoulette');});
+document.getElementById('btnDVD').addEventListener('click',function(){navigate('pageDVD');});
+document.getElementById('btnCamera').addEventListener('click',function(){openScanner();});
+document.getElementById('btnGoCollection').addEventListener('click',function(){navigate('pageCollection');});
+document.getElementById('btnGoRoulette').addEventListener('click',function(){navigate('pageRoulette');});
+document.getElementById('btnMoreRecos').addEventListener('click',function(){recoPage++;loadRecos();});
+document.getElementById('colBack').addEventListener('click',function(){navigateBack();});
+document.getElementById('dvdBack').addEventListener('click',function(){navigateBack();});
+document.getElementById('filmBack').addEventListener('click',function(){navigateBack();});
+document.getElementById('btnRouBack').addEventListener('click',function(){navigateBack();});
+document.getElementById('btnShowResume').addEventListener('click',function(){toggleResume();});
+document.getElementById('btnAddCat').addEventListener('click',function(){addCategory();});
+document.getElementById('btnManuel').addEventListener('click',function(){openManuel();});
+document.getElementById('btnSelect').addEventListener('click',function(){toggleSelectMode();});
+document.getElementById('btnExport').addEventListener('click',function(){exportDB();});
+document.getElementById('importFile').addEventListener('change',function(){importDB(this);});
+document.getElementById('vBtn1').addEventListener('click',function(){setView(1,this);});
+document.getElementById('vBtn2').addEventListener('click',function(){setView(2,this);});
+document.getElementById('selBtnMove').addEventListener('click',function(){openMoveModal();});
+document.getElementById('selBtnDel').addEventListener('click',function(){deleteSelected();});
+document.getElementById('selBtnCancel').addEventListener('click',function(){toggleSelectMode();});
+document.getElementById('btnSpin').addEventListener('click',function(){spinRoulette();});
+document.getElementById('rOptRandom').addEventListener('click',function(){setRouMode('random',this);});
+document.getElementById('rOptCat').addEventListener('click',function(){setRouMode('cat',this);});
+document.getElementById('btnConfirmAdd').addEventListener('click',function(){confirmAdd();});
+document.getElementById('btnCancelAdd').addEventListener('click',function(){closeModal('modalAdd');});
+document.getElementById('btnConfirmManuel').addEventListener('click',function(){confirmManuel();});
+document.getElementById('btnCancelManuel').addEventListener('click',function(){closeModal('modalManuel');});
+document.getElementById('quickAddConfirmBtn').addEventListener('click',function(){confirmQuickAdd();});
+document.getElementById('btnCancelQuick').addEventListener('click',function(){closeModal('modalQuickAdd');});
+document.getElementById('btnConfirmMove').addEventListener('click',function(){confirmMove();});
+document.getElementById('btnCancelMove').addEventListener('click',function(){closeModal('modalMove');});
+document.getElementById('recoPopupClose').addEventListener('click',function(){closeModal('recoPopup');});
+document.getElementById('recoPopupAdd').addEventListener('click',function(){closeModal('recoPopup');if(recoPopupMovieId)openModal(recoPopupMovieId,recoPopupMovieType||'movie');});
+document.getElementById('recoPopupFiche').addEventListener('click',function(){closeModal('recoPopup');if(recoPopupMovieId)openFilmPageById(recoPopupMovieId,recoPopupMovieType||'movie');});
+document.getElementById('btnAddFromFiche').addEventListener('click',function(){if(filmReadOnlyData)openModal(filmReadOnlyData.id,filmReadOnlyData.type);});
+document.getElementById('colSearchInput').addEventListener('input',function(){renderCollection();});
+document.getElementById('btnCloseScanner').addEventListener('click',function(){closeScanner();});
+document.getElementById('btnScanBarcode').addEventListener('click',function(){scanMode='barcode';startBarcodeScan();});
+document.getElementById('btnScanPhoto').addEventListener('click',function(){document.getElementById('photoInput').click();});
+document.getElementById('photoInput').addEventListener('change',function(){handlePhotoSearch(this);});
+
+// Catégorie depuis fiche
+document.getElementById('filmCatSelect').addEventListener('change',function(){
+  var f=db.films[currentFilmId];if(!f||filmReadOnly)return;
+  var old=f.catIdx;
+  if(old!==null&&old!==undefined&&db.categories[old])db.categories[old].films=(db.categories[old].films||[]).filter(function(x){return x!=currentFilmId;});
+  var val=this.value;
+  f.catIdx=(val!=='')?parseInt(val):null;
+  if(f.catIdx!==null&&db.categories[f.catIdx]){if(!db.categories[f.catIdx].films)db.categories[f.catIdx].films=[];if(db.categories[f.catIdx].films.indexOf(currentFilmId)===-1)db.categories[f.catIdx].films.push(currentFilmId);}
+  saveDB();toast('📂 Catégorie mise à jour !');
+});
+
+document.querySelectorAll('.sBnt').forEach(function(b){
+  b.addEventListener('click',function(){
+    if(filmReadOnly)return;
+    if(b.classList.contains('dvdBtn')){currentDVD=!currentDVD;b.classList.toggle('active',currentDVD);autoSave();}
+    else{currentStatus=b.getAttribute('data-s');document.querySelectorAll('.sBnt:not(.dvdBtn)').forEach(function(x){x.classList.toggle('active',x===b);});autoSave();}
+  });
+});
+document.querySelectorAll('.star').forEach(function(s){
+  s.addEventListener('click',function(){
+    if(filmReadOnly)return;
+    currentNote=parseInt(s.getAttribute('data-i'));
+    document.querySelectorAll('.star').forEach(function(st){st.classList.toggle('on',parseInt(st.getAttribute('data-i'))<=currentNote);});
+    autoSave();
+  });
+});
+
+// TOAST
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
+
+// STATS
+function renderStats(){
+  var films=Object.values(db.films);
+  var total=films.length,vus=films.filter(function(f){return f.status==='vu';}).length;
+  var dvds=films.filter(function(f){return f.dvd;}).length,cats=db.categories.length;
+  document.getElementById('statsBar').innerHTML='<div class="statCard"><div class="sNum">'+total+'</div><div class="sLbl">Films</div></div><div class="statCard"><div class="sNum">'+vus+'</div><div class="sLbl">Vus</div></div><div class="statCard"><div class="sNum">'+dvds+'</div><div class="sLbl">DVD</div></div><div class="statCard"><div class="sNum">'+cats+'</div><div class="sLbl">Catégories</div></div>';
+  loadRecos();
+}
+
+// TMDB
+function tmdb(path){return fetch('https://api.themoviedb.org/3'+path+'&api_key='+TMDB_KEY+'&language=fr-FR').then(function(r){return r.json();});}
+function tmdbEn(path){return fetch('https://api.themoviedb.org/3'+path+'&api_key='+TMDB_KEY+'&language=en-US').then(function(r){return r.json();});}
+
+// RECHERCHE TOLÉRANTE (normalise accents, casse, espaces)
+function normalize(s){
+  return (s||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+// Distance de Levenshtein simplifiée pour tolérance aux fautes
+function levenshtein(a,b){
+  var m=a.length,n=b.length,dp=[];
+  for(var i=0;i<=m;i++){dp[i]=[i];for(var j=1;j<=n;j++)dp[i][j]=i===0?j:0;}
+  for(var i=1;i<=m;i++)for(var j=1;j<=n;j++)dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+var inp=document.getElementById('searchInput'),sr=document.getElementById('searchResults'),stimer;
+inp.addEventListener('input',function(){clearTimeout(stimer);if(!inp.value.trim()){sr.style.display='none';return;}stimer=setTimeout(doSearch,400);});
+document.addEventListener('click',function(e){if(!e.target.closest('#searchWrap')&&!e.target.closest('.modal'))sr.style.display='none';});
+
+function doSearch(){
+  var q=inp.value.trim();if(!q)return;
+  sr.innerHTML='<div style="padding:10px 14px;color:var(--text2)">Recherche...</div>';sr.style.display='block';
+  var qNorm=normalize(q);
+  // Recherche FR + EN en parallèle + version sans accents
+  Promise.all([
+    tmdb('/search/multi?query='+encodeURIComponent(q)),
+    tmdbEn('/search/multi?query='+encodeURIComponent(q)),
+    // Recherche avec query nettoyée (sans accents/ponctuation) pour tolérance
+    tmdb('/search/multi?query='+encodeURIComponent(qNorm))
+  ]).then(function(arr){
+    var seen={};var merged=[];
+    arr.forEach(function(data){
+      (data.results||[]).forEach(function(r){
+        if(r.media_type!=='person'&&!seen[r.id]){
+          seen[r.id]=true;
+          // Score de pertinence basé sur similarité avec la query
+          var rTitle=normalize(r.title||r.name||'');
+          var dist=levenshtein(qNorm,rTitle.slice(0,qNorm.length+3));
+          r._score=dist;
+          merged.push(r);
+        }
+      });
+    });
+    // Trie par score de pertinence (distance Levenshtein faible = meilleur match)
+    merged.sort(function(a,b){return a._score-b._score;});
+    merged=merged.slice(0,8);
+    sr.innerHTML='';
+    if(!merged.length){sr.innerHTML='<div style="padding:10px 14px;color:var(--text2);text-align:center">Aucun résultat. Ajoutez-le manuellement depuis Collections.</div>';return;}
+    merged.forEach(function(r){
+      var div=document.createElement('div');div.className='srItem';
+      var poster=r.poster_path?IMG+r.poster_path:'';
+      var year=(r.release_date||r.first_air_date||'').slice(0,4);
+      var type=r.media_type==='tv'?'📺':'🎬';
+      var title=r.title||r.name||'';
+      var inDb=!!db.films[r.id];
+      div.innerHTML=(poster?'<img src="'+poster+'">':`<div style="width:36px;height:54px;background:var(--glass);border-radius:4px;display:flex;align-items:center;justify-content:center">🎬</div>`)+'<div class="srInfo"><div class="srTitle">'+title+'</div><div class="srYear">'+type+' '+year+'</div></div>'+(inDb?'<div class="srInDb" title="Déjà dans votre collection"></div>':'<button class="srAdd">+ Ajouter</button>');
+      (function(rid,rtype,rinDb){
+        if(!rinDb){var addBtn=div.querySelector('.srAdd');if(addBtn)addBtn.addEventListener('click',function(e){e.stopPropagation();sr.style.display='none';openModal(rid,rtype);});}
+        div.addEventListener('click',function(){sr.style.display='none';if(rinDb)openFilmPage(String(rid));else openModal(rid,rtype);});
+      })(r.id,r.media_type,inDb);
+      sr.appendChild(div);
+    });
+  }).catch(function(){sr.innerHTML='<div style="padding:10px 14px;color:#f88">Erreur de connexion</div>';});
+}
+
+// RECOS
+function loadRecos(){
+  var scr=document.getElementById('recoScroll');
+  if(recoPage===1)scr.innerHTML='<div style="color:var(--text2);padding:8px">Chargement...</div>';
+  tmdb('/movie/popular?page='+recoPage).then(function(data){
+    if(recoPage===1)scr.innerHTML='';
+    (data.results||[]).slice(0,15).forEach(function(m){
+      var c=document.createElement('div');c.className='recoCard';
+      var title=m.title||'';var overview=m.overview||'';
+      c.innerHTML=(m.poster_path?'<img src="'+IMG+m.poster_path+'" onerror="this.style.display=\'none\'">':`<div style="width:100px;height:150px;background:var(--glass);border-radius:10px;display:flex;align-items:center;justify-content:center">🎬</div>`)+'<button class="recoBtnInfo">ℹ️</button><p>'+title+'</p>';
+      (function(mid,mtitle,moverview){
+        c.querySelector('.recoBtnInfo').addEventListener('click',function(e){e.stopPropagation();showRecoPopup(mid,mtitle,moverview,'movie');});
+        c.addEventListener('click',function(){openModal(mid,'movie');});
+      })(m.id,title,overview);
+      scr.appendChild(c);
+    });
+    if(recoPage>1)scr.scrollLeft=scr.scrollWidth;
+  }).catch(function(){if(recoPage===1)document.getElementById('recoScroll').innerHTML='<div style="color:var(--text2);padding:8px">Erreur de connexion</div>';});
+}
+
+// POPUP RÉSUMÉ
+function showRecoPopup(id,title,desc,type){
+  recoPopupMovieId=id;recoPopupMovieType=type;
+  document.getElementById('recoPopupTitle').textContent=title;
+  document.getElementById('recoPopupDesc').textContent=desc||'Aucun résumé disponible.';
+  document.getElementById('recoPopup').classList.add('show');
+}
+
+// MODAL AJOUT TMDB
+function openModal(id,type){
+  modalFilms=[];
+  document.getElementById('modalAdd').classList.add('show');
+  document.getElementById('collectionPreview').innerHTML='<div style="color:var(--text2);padding:8px">Chargement...</div>';
+  tmdb('/'+(type==='tv'?'tv':'movie')+'/'+id+'?').then(function(details){
+    var colPromise=Promise.resolve(null);
+    if(type==='movie'&&details.belongs_to_collection)colPromise=tmdb('/collection/'+details.belongs_to_collection.id+'?');
+    colPromise.then(function(colData){
+      if(type==='movie'){
+        var col=colData&&colData.parts?colData.parts.slice().sort(function(a,b){return (a.release_date||'').localeCompare(b.release_date||'');}): [details];
+        document.getElementById('modalTitle').textContent=colData?'Collection : '+details.belongs_to_collection.name:'Ajouter : '+(details.title||'');
+        modalFilms=col.map(function(m){return{id:m.id,title:m.title||'',poster:m.poster_path?IMG+m.poster_path:'',year:(m.release_date||'').slice(0,4),type:'movie',resume:m.overview||'',future:!!(m.release_date&&new Date(m.release_date)>new Date()),seasons:0};});
+      }else{
+        document.getElementById('modalTitle').textContent='Série : '+(details.name||'');
+        var seasons=(details.seasons||[]).filter(function(s){return s.season_number>0;});
+        modalFilms=[{id:details.id,title:details.name||'',poster:details.poster_path?IMG+details.poster_path:'',year:(details.first_air_date||'').slice(0,4),type:'tv',resume:details.overview||'',future:false,seasons:seasons.length}];
+      }
+      renderModalPreview();renderCatSelect('modalCatSel');
+    });
+  }).catch(function(){document.getElementById('collectionPreview').innerHTML='<div style="color:#f88">Erreur de chargement</div>';});
+}
+
+function renderModalPreview(){
+  var html='<div class="collectionList">';
+  modalFilms.forEach(function(f,i){
+    var inDb=!!db.films[f.id];
+    html+='<div class="colFilmRow" data-idx="'+i+'">';
+    html+=f.poster?'<img src="'+f.poster+'">':`<div style="width:30px;height:45px;background:var(--glass);border-radius:4px"></div>`;
+    html+='<span class="cfTitle">'+f.title+(f.year?' ('+f.year+')':'')+'</span>';
+    html+='<div class="cfBtns">';
+    if(f.future)html+='<span class="cfFuture">À venir</span>';
+    // Bouton "Voir la fiche"
+    html+='<button class="cfFiche" data-idx="'+i+'">🎬 Fiche</button>';
+    if(inDb)html+='<span style="color:var(--orange2);font-size:.75rem">✓</span>';
+    html+='</div></div>';
+    if(!inDb){
+      html+='<div class="dvdCheckRow" style="margin-left:8px;margin-bottom:4px;">';
+      html+='<input type="checkbox" id="dvd_'+f.id+'">';
+      html+='<label for="dvd_'+f.id+'">📀 Possédé en DVD</label>';
+      html+='</div>';
+    }
+  });
+  html+='</div>';
+  document.getElementById('collectionPreview').innerHTML=html;
+  document.querySelectorAll('.colFilmRow').forEach(function(row){
+    row.addEventListener('click',function(e){
+      if(e.target.classList.contains('cfFiche'))return;
+      // clic sur la ligne = rien de spécial ici
+    });
+  });
+  document.querySelectorAll('.cfFiche').forEach(function(btn){
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      var idx=parseInt(btn.getAttribute('data-idx'));
+      var f=modalFilms[idx];
+      closeModal('modalAdd');
+      openFilmPageById(f.id,f.type,f);
+    });
+  });
+  document.querySelectorAll('.dvdCheckRow input,.dvdCheckRow label').forEach(function(el){
+    el.addEventListener('click',function(e){e.stopPropagation();});
+  });
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+function renderCatSelect(selId){
+  var sel=document.getElementById(selId);
+  sel.innerHTML='<option value="">— Sans catégorie —</option>';
+  db.categories.forEach(function(c,i){sel.innerHTML+='<option value="'+i+'">'+c.name+'</option>';});
+  sel.innerHTML+='<option value="__new__">+ Créer une nouvelle catégorie</option>';
+  sel.onchange=function(){
+    if(sel.value==='__new__'){
+      var name=prompt('Nom de la nouvelle catégorie :');
+      if(name&&name.trim()){db.categories.push({name:name.trim(),films:[]});saveDB();var idx=db.categories.length-1;renderCatSelect(selId);sel.value=idx;toast('📂 "'+name+'" créée !');}
+      else sel.value='';
+    }
+  };
+}
+
+function addFilmToDB(f,catIdx,dvd){
+  if(db.films[f.id])return false;
+  db.films[f.id]={id:f.id,title:f.title,poster:f.poster,year:f.year,type:f.type,dvd:!!dvd,status:'voir',note:0,comment:'',resume:f.resume||'',seasons:f.seasons||0,seasonsChecked:[],catIdx:catIdx,future:!!f.future};
+  if(catIdx!==null&&catIdx!==undefined&&db.categories[catIdx]){
+    if(!db.categories[catIdx].films)db.categories[catIdx].films=[];
+    if(db.categories[catIdx].films.indexOf(f.id)===-1)db.categories[catIdx].films.push(f.id);
+  }
+  return true;
+}
+
+function confirmAdd(){
+  var catVal=document.getElementById('modalCatSel').value;
+  var catIdx=(catVal!==''&&catVal!=='__new__')?parseInt(catVal):null;
+  var added=0;
+  modalFilms.forEach(function(f){
+    var cb=document.getElementById('dvd_'+f.id);
+    if(addFilmToDB(f,catIdx,cb?cb.checked:false))added++;
+  });
+  saveDB();closeModal('modalAdd');toast(added>0?'✅ '+added+' film(s) ajouté(s) !':'Déjà dans la collection');
+}
+
+// AJOUT MANUEL
+function openManuel(){
+  document.getElementById('mTitle').value='';document.getElementById('mYear').value='';
+  document.getElementById('mPoster').value='';document.getElementById('mResume').value='';
+  document.getElementById('mSeasons').value='';document.getElementById('mType').value='movie';
+  document.getElementById('mDvd').checked=false;
+  renderCatSelect('mCatSel');document.getElementById('modalManuel').classList.add('show');
+}
+function confirmManuel(){
+  var title=document.getElementById('mTitle').value.trim();
+  if(!title){toast('⚠️ Le titre est obligatoire');return;}
+  var dvd=document.getElementById('mDvd').checked;
+  var catVal=document.getElementById('mCatSel').value;
+  var catIdx=(catVal!==''&&catVal!=='__new__')?parseInt(catVal):null;
+  var id='manual_'+Date.now();
+  db.films[id]={id:id,title:title,poster:document.getElementById('mPoster').value.trim(),year:document.getElementById('mYear').value.trim(),type:document.getElementById('mType').value,dvd:dvd,status:'voir',note:0,comment:'',resume:document.getElementById('mResume').value.trim(),seasons:parseInt(document.getElementById('mSeasons').value)||0,seasonsChecked:[],catIdx:catIdx,future:false,manual:true};
+  if(catIdx!==null&&db.categories[catIdx]){if(!db.categories[catIdx].films)db.categories[catIdx].films=[];db.categories[catIdx].films.push(id);}
+  saveDB();closeModal('modalManuel');toast('✅ "'+title+'" ajouté !');
+}
+
+// COLLECTION
+function setView(v,btn){currentView=v;document.querySelectorAll('.vBtn').forEach(function(b){b.classList.toggle('active',b===btn);});renderCollection();}
+function renderCollection(){
+  var q=document.getElementById('colSearchInput').value.toLowerCase();
+  var body=document.getElementById('colBody');
+  var films=Object.values(db.films).filter(function(f){return !q||f.title.toLowerCase().indexOf(q)!==-1;});
+  if(!films.length){body.innerHTML='<div style="text-align:center;color:var(--text2);padding:40px">Aucun film enregistré.</div>';return;}
+  body.innerHTML='';
+  if(currentView===1){
+    groupBySaga(films).forEach(function(g){
+      if(g.films.length>1){var gb=document.createElement('div');gb.className='groupBlock';gb.innerHTML='<div class="groupHeader"><span>🎬 '+g.name+' ('+g.films.length+')</span></div><div class="gf" style="padding:0 0 0 8px">'+g.films.map(filmItemHTML).join('')+'</div>';gb.querySelector('.groupHeader').addEventListener('click',function(){toggleEl(gb.querySelector('.gf'));});body.appendChild(gb);}
+      else body.innerHTML+=filmItemHTML(g.films[0]);
+    });
+  }else{
+    db.categories.forEach(function(cat,ci){
+      var catFilms=films.filter(function(f){return f.catIdx===ci;});
+      var cb=document.createElement('div');cb.className='catBlock';
+      var inner=groupBySaga(catFilms).map(function(g){
+        if(g.films.length>1)return '<div class="groupBlock"><div class="groupHeader gInner"><span>🎬 '+g.name+' ('+g.films.length+')</span></div><div class="gf" style="padding:0 0 0 8px">'+g.films.map(filmItemHTML).join('')+'</div></div>';
+        return filmItemHTML(g.films[0]);
+      }).join('');
+      cb.innerHTML='<div class="catHeader"><span>📂 '+cat.name+'</span><span class="catCount">'+catFilms.length+' titre(s)</span></div><div class="catF">'+inner+'</div>';
+      cb.querySelector('.catHeader').addEventListener('click',function(){toggleEl(cb.querySelector('.catF'));});
+      body.appendChild(cb);
+      cb.querySelectorAll('.gInner').forEach(function(gh){gh.addEventListener('click',function(e){e.stopPropagation();toggleEl(gh.nextElementSibling);});});
+    });
+    var uncatFilms=films.filter(function(f){return f.catIdx===null||f.catIdx===undefined;});
+    if(uncatFilms.length){
+      var gb2=document.createElement('div');gb2.className='catBlock';
+      gb2.innerHTML='<div class="catHeader"><span>📁 Sans catégorie</span><span class="catCount">'+uncatFilms.length+'</span></div><div class="catF">'+groupBySaga(uncatFilms).map(function(g){if(g.films.length>1)return '<div class="groupBlock"><div class="groupHeader gInner"><span>🎬 '+g.name+' ('+g.films.length+')</span></div><div class="gf" style="padding:0 0 0 8px">'+g.films.map(filmItemHTML).join('')+'</div></div>';return filmItemHTML(g.films[0]);}).join('')+'</div>';
+      gb2.querySelector('.catHeader').addEventListener('click',function(){toggleEl(gb2.querySelector('.catF'));});
+      body.appendChild(gb2);
+      gb2.querySelectorAll('.gInner').forEach(function(gh){gh.addEventListener('click',function(e){e.stopPropagation();toggleEl(gh.nextElementSibling);});});
+    }
+  }
+  body.querySelectorAll('.filmCheckbox').forEach(function(cb){
+    cb.addEventListener('change',function(e){e.stopPropagation();if(cb.checked)selectedIds[cb.getAttribute('data-id')]=true;else delete selectedIds[cb.getAttribute('data-id')];updateSelBar();});
+    if(selectedIds[cb.getAttribute('data-id')])cb.checked=true;
+  });
+  body.querySelectorAll('.filmItem').forEach(function(item){
+    item.addEventListener('click',function(e){
+      var id=item.getAttribute('data-id');
+      if(selectMode){
+        var cb=item.querySelector('.filmCheckbox');
+        if(e.target!==cb){
+          if(selectedIds[id]){delete selectedIds[id];cb.checked=false;}
+          else{selectedIds[id]=true;cb.checked=true;}
+          item.classList.toggle('selected',!!selectedIds[id]);
+          updateSelBar();
+        }
+      }else{if(!e.target.classList.contains('filmCheckbox'))openFilmPage(id);}
+    });
+  });
+}
+function toggleEl(el){if(el)el.style.display=el.style.display==='none'?'':'none';}
+function filmItemHTML(f){
+  var cls='filmItem'+(f.future?' future':'')+(selectedIds[String(f.id)]?' selected':'');
+  var chk=selectedIds[String(f.id)]?'checked':'';
+  var posterH=f.poster?'<img src="'+f.poster+'">':`<div style="width:36px;height:54px;background:var(--glass);border-radius:4px;display:flex;align-items:center;justify-content:center">🎬</div>`;
+  var sub=(f.year||'')+' '+(f.type==='tv'?'• Série':'• Film')+(f.note?' • '+'⭐'.repeat(f.note):'');
+  var badge=f.future?'<span class="futureBadge">À venir</span>':'';
+  return '<div class="'+cls+'" data-id="'+f.id+'"><input type="checkbox" class="filmCheckbox" data-id="'+f.id+'" '+chk+'>'+posterH+'<div class="fInfo"><div class="fTitle">'+f.title+badge+'</div><div class="fSub">'+sub+'</div></div><span style="font-size:1.4rem">'+(f.dvd?'✅':'❌')+'</span></div>';
+}
+function groupBySaga(films){var map={},order=[];films.forEach(function(f){var k=sagaKey(f.title);if(!map[k]){map[k]={name:sagaName(f.title),films:[]};order.push(k);}map[k].films.push(f);});return order.map(function(k){return map[k];});}
+function sagaKey(t){return t.toLowerCase().replace(/\s*([-:]\s*|\s+)(chapitre|chapter|part|partie|saison|season|volume|vol|épisode|episode|\d+|i{1,3}|iv|vi{0,3}|ix)\b.*/i,'').replace(/\s+\d+$/,'').trim();}
+function sagaName(t){return t.replace(/\s*([-:]\s*|\s+)(chapitre|chapter|part|partie|saison|season|volume|vol|\d+|i{1,3}|iv|vi{0,3}|ix)\b.*/i,'').replace(/\s+\d+$/,'').trim();}
+function addCategory(){var name=prompt('Nom de la nouvelle catégorie :');if(!name||!name.trim())return;db.categories.push({name:name.trim(),films:[]});saveDB();renderCollection();toast('📂 "'+name+'" créée !');}
+
+// SÉLECTION
+function toggleSelectMode(){selectMode=!selectMode;selectedIds={};document.getElementById('btnSelect').textContent=selectMode?'✕ Annuler':'☑️ Sélect.';document.getElementById('selectionBar').classList.toggle('show',selectMode);renderCollection();}
+function updateSelBar(){document.getElementById('selCount').textContent=Object.keys(selectedIds).length+' sélectionné(s)';}
+function openMoveModal(){if(!Object.keys(selectedIds).length){toast('Sélectionnez des films d\'abord');return;}renderCatSelect('moveCatSel');document.getElementById('modalMove').classList.add('show');}
+function confirmMove(){
+  var catVal=document.getElementById('moveCatSel').value;
+  var catIdx=(catVal!==''&&catVal!=='__new__')?parseInt(catVal):null;
+  Object.keys(selectedIds).forEach(function(id){
+    if(db.films[id]){var old=db.films[id].catIdx;if(old!==null&&old!==undefined&&db.categories[old])db.categories[old].films=(db.categories[old].films||[]).filter(function(x){return x!=id;});db.films[id].catIdx=catIdx;if(catIdx!==null&&db.categories[catIdx]){if(!db.categories[catIdx].films)db.categories[catIdx].films=[];if(db.categories[catIdx].films.indexOf(id)===-1)db.categories[catIdx].films.push(id);};}
+  });
+  saveDB();closeModal('modalMove');toggleSelectMode();toast('✅ Films déplacés !');
+}
+function deleteSelected(){var ids=Object.keys(selectedIds);if(!ids.length){toast('Sélectionnez des films d\'abord');return;}if(!confirm('Supprimer '+ids.length+' film(s) ?'))return;ids.forEach(function(id){if(db.films[id]){var ci=db.films[id].catIdx;if(ci!==null&&ci!==undefined&&db.categories[ci])db.categories[ci].films=(db.categories[ci].films||[]).filter(function(x){return x!=id;});delete db.films[id];}});saveDB();toggleSelectMode();toast('🗑️ Films supprimés !');}
+
+// FICHE FILM (depuis collection)
+var currentNote=0,currentStatus='voir',currentDVD=false;
+function openFilmPage(id){
+  filmReadOnly=false;filmReadOnlyData=null;
+  navigate('pageFilm');currentFilmId=id;
+  var f=db.films[id];
+  renderFilmPage(f,false);
+}
+
+// FICHE FILM (depuis modale / recos / similaires — peut être lecture seule)
+function openFilmPageById(tmdbId,type,cachedData){
+  var strId=String(tmdbId);
+  // Si déjà dans la collection → ouvre la fiche normale
+  if(db.films[strId]||db.films[tmdbId]){
+    openFilmPage(db.films[strId]?strId:tmdbId);
+    return;
+  }
+  // Sinon → fiche lecture seule
+  filmReadOnly=true;
+  navigate('pageFilm');currentFilmId=null;
+  if(cachedData){
+    filmReadOnlyData={id:tmdbId,type:type};
+    renderFilmPage({id:tmdbId,title:cachedData.title,poster:cachedData.poster,year:cachedData.year,type:type,resume:cachedData.resume||'',note:0,status:'voir',dvd:false,seasons:0,seasonsChecked:[],catIdx:null},true);
+  }else{
+    document.getElementById('filmBg').src='';document.getElementById('filmPoster').src='';
+    document.getElementById('filmTitle').textContent='Chargement...';document.getElementById('filmMeta').textContent='';
+    tmdb('/'+(type==='tv'?'tv':'movie')+'/'+tmdbId+'?').then(function(details){
+      filmReadOnlyData={id:tmdbId,type:type};
+      var f={id:tmdbId,title:details.title||details.name||'',poster:details.poster_path?IMG+details.poster_path:'',year:(details.release_date||details.first_air_date||'').slice(0,4),type:type,resume:details.overview||'',note:0,status:'voir',dvd:false,seasons:0,seasonsChecked:[],catIdx:null};
+      renderFilmPage(f,true);
+    });
+  }
+}
+
+function renderFilmPage(f,readOnly){
+  document.getElementById('filmBg').src=f.poster||'';
+  document.getElementById('filmPoster').src=f.poster||'';
+  document.getElementById('filmTitle').textContent=f.title;
+  document.getElementById('filmMeta').textContent=(f.year?f.year+' • ':'')+(f.type==='tv'?'Série':'Film');
+  // Bannière lecture seule
+  document.getElementById('filmReadonlyBanner').style.display=readOnly?'flex':'none';
+  document.getElementById('filmEditSection').style.opacity=readOnly?'0.4':'1';
+  document.getElementById('filmEditSection').style.pointerEvents=readOnly?'none':'auto';
+  // Résumé
+  var hasResume=!!(f.resume&&f.resume.trim());
+  document.getElementById('resumeSection').style.display=hasResume?'':'none';
+  document.getElementById('resumeBox').textContent=f.resume||'';
+  document.getElementById('resumeBox').style.display='none';
+  document.getElementById('btnShowResume').textContent='📖 Afficher le résumé';
+  document.getElementById('btnShowResume').classList.remove('active');
+  if(!readOnly){
+    currentStatus=f.status||'voir';currentNote=f.note||0;currentDVD=!!f.dvd;
+    document.querySelectorAll('.sBnt').forEach(function(b){
+      if(b.classList.contains('dvdBtn'))b.classList.toggle('active',currentDVD);
+      else b.classList.toggle('active',b.getAttribute('data-s')===currentStatus);
+    });
+    document.querySelectorAll('.star').forEach(function(s){s.classList.toggle('on',parseInt(s.getAttribute('data-i'))<=currentNote);});
+    document.getElementById('filmComment').value=f.comment||'';
+    // Catégorie
+    renderFilmCatSelect(f);
+    // Saisons
+    if(f.type==='tv'&&f.seasons){
+      document.getElementById('seasonsSection').style.display='';
+      var sl=document.getElementById('seasonsList');sl.innerHTML='';
+      for(var i=1;i<=f.seasons;i++){
+        var checked=(f.seasonsChecked||[]).indexOf(i)!==-1;
+        var row=document.createElement('div');row.className='seasonRow';
+        row.innerHTML='<input type="checkbox" id="s'+i+'" '+(checked?'checked':'')+'>'+' <label for="s'+i+'">Saison '+i+'</label>';
+        (function(n){row.querySelector('input').addEventListener('change',function(e){toggleSeason(n,e.target.checked);});})(i);
+        sl.appendChild(row);
+      }
+    }else document.getElementById('seasonsSection').style.display='none';
+    document.getElementById('filmComment').oninput=function(){clearTimeout(autoSaveTimer);autoSaveTimer=setTimeout(function(){autoSave();},1000);};
+  }
+  loadSimilar(f);
+}
+
+function renderFilmCatSelect(f){
+  var sel=document.getElementById('filmCatSelect');
+  sel.innerHTML='<option value="">— Sans catégorie —</option>';
+  db.categories.forEach(function(c,i){sel.innerHTML+='<option value="'+i+'" '+(f.catIdx===i?'selected':'')+'>'+c.name+'</option>';});
+}
+
+function autoSave(){var f=db.films[currentFilmId];if(!f||filmReadOnly)return;f.status=currentStatus;f.note=currentNote;f.dvd=currentDVD;f.comment=document.getElementById('filmComment').value;saveDB();toast('💾 Sauvegardé');}
+function toggleResume(){var box=document.getElementById('resumeBox'),btn=document.getElementById('btnShowResume');var show=box.style.display==='none';box.style.display=show?'block':'none';btn.textContent=show?'📖 Masquer le résumé':'📖 Afficher le résumé';btn.classList.toggle('active',show);}
+function toggleSeason(n,checked){var f=db.films[currentFilmId];if(!f)return;if(!f.seasonsChecked)f.seasonsChecked=[];if(checked&&f.seasonsChecked.indexOf(n)===-1)f.seasonsChecked.push(n);else f.seasonsChecked=f.seasonsChecked.filter(function(x){return x!==n;});saveDB();}
+
+// SIMILAIRES
+function loadSimilar(f){
+  var scr=document.getElementById('similScroll');
+  scr.innerHTML='<div style="color:var(--text2);font-size:.85rem">Chargement...</div>';
+  if(f.manual||!f.id||String(f.id).indexOf('manual')===0){scr.innerHTML='<div style="color:var(--text2);font-size:.85rem">Pas de suggestions pour les films ajoutés manuellement.</div>';return;}
+  var isTv=f.type==='tv';
+  var refYear=parseInt((f.year||'').slice(0,4))||null;
+  Promise.all([tmdb('/'+(isTv?'tv':'movie')+'/'+f.id+'?'),tmdb('/'+(isTv?'tv':'movie')+'/'+f.id+'/keywords?').catch(function(){return{};})]).then(function(arr){
+    var details=arr[0],kwData=arr[1];
+    var genreIds=(details.genres||[]).map(function(g){return g.id;}).join(',');
+    var yr=parseInt((details.release_date||details.first_air_date||f.year||'').slice(0,4));if(yr)refYear=yr;
+    var keywords=(kwData.keywords||kwData.results||[]).map(function(k){return k.id;});
+    var p1=keywords.length&&genreIds?tmdb('/'+(isTv?'discover/tv':'discover/movie')+'?with_genres='+genreIds+'&with_keywords='+keywords.slice(0,6).join('|')+'&sort_by=popularity.desc'):Promise.resolve({results:[]});
+    p1.then(function(d1){
+      var results=d1.results||[];
+      var p2=results.length<8?tmdb('/'+(isTv?'tv':'movie')+'/'+f.id+'/similar?'):Promise.resolve({results:[]});
+      p2.then(function(d2){
+        (d2.results||[]).forEach(function(m){if(!results.some(function(r){return r.id===m.id;}))results.push(m);});
+        var p3=results.length<6&&genreIds?tmdb('/'+(isTv?'discover/tv':'discover/movie')+'?with_genres='+genreIds+'&sort_by=popularity.desc'):Promise.resolve({results:[]});
+        p3.then(function(d3){
+          (d3.results||[]).forEach(function(m){if(!results.some(function(r){return r.id===m.id;}))results.push(m);});
+          results=results.filter(function(m){if(m.id===f.id)return false;if(refYear){var y=parseInt((m.release_date||m.first_air_date||'').slice(0,4));if(y&&Math.abs(y-refYear)>20)return false;}return(m.vote_count||0)>=20;});
+          results.sort(function(a,b){return (b.popularity||0)-(a.popularity||0);});
+          results=results.slice(0,12);
+          scr.innerHTML='';
+          if(!results.length){scr.innerHTML='<div style="color:var(--text2);font-size:.85rem">Aucune suggestion pertinente trouvée.</div>';return;}
+          results.forEach(function(m){
+            var c=document.createElement('div');c.className='similCard';
+            var title=m.title||m.name||'';
+            var overview=m.overview||'';
+            var inDb=!!db.films[m.id];
+            var qbtn=document.createElement('button');
+            qbtn.className='similQuickAdd '+(inDb?'inDb':'notInDb');
+            qbtn.textContent=inDb?'':'+';
+            qbtn.title=inDb?'Déjà dans votre collection':'Ajouter';
+            var infobtn=document.createElement('button');infobtn.className='similInfo';infobtn.textContent='ℹ️';
+            var imgEl=document.createElement('div');
+            if(m.poster_path){var im=document.createElement('img');im.src=IMG+m.poster_path;im.onerror=function(){im.style.display='none';};imgEl=im;}
+            else{imgEl.style.cssText='width:80px;height:120px;background:var(--glass);border-radius:8px;display:flex;align-items:center;justify-content:center';imgEl.textContent='🎬';}
+            var ptag=document.createElement('p');ptag.textContent=title;
+            c.appendChild(qbtn);c.appendChild(imgEl);c.appendChild(infobtn);c.appendChild(ptag);
+            (function(mid,mtitle,moverview,mtype,mposter,myear){
+              if(!inDb){qbtn.addEventListener('click',function(e){e.stopPropagation();openQuickAdd(mid,mtitle,mposter,myear,mtype,moverview);});}
+              else{qbtn.addEventListener('click',function(e){e.stopPropagation();});}
+              infobtn.addEventListener('click',function(e){e.stopPropagation();showRecoPopup(mid,mtitle,moverview,mtype);});
+              c.addEventListener('click',function(){openFilmPageById(mid,mtype,{id:mid,title:mtitle,poster:mposter?IMG+mposter:'',year:myear,type:mtype,resume:moverview});});
+            })(m.id,title,overview,isTv?'tv':'movie',m.poster_path||'',(m.release_date||m.first_air_date||'').slice(0,4));
+            scr.appendChild(c);
+          });
+        });
+      });
+    });
+  }).catch(function(){scr.innerHTML='<div style="color:var(--text2);font-size:.85rem">Erreur de chargement.</div>';});
+}
+
+// AJOUT RAPIDE
+function openQuickAdd(id,title,posterPath,year,type,resume){
+  quickFilmData={id:id,title:title,posterPath:posterPath,year:year,type:type,resume:resume};
+  document.getElementById('quickAddTitle').textContent='+ '+title;
+  document.getElementById('quickAddDvd').checked=false;
+  renderCatSelect('quickAddCatSel');
+  document.getElementById('modalQuickAdd').classList.add('show');
+}
+function confirmQuickAdd(){
+  if(!quickFilmData)return;
+  var id=quickFilmData.id,title=quickFilmData.title,posterPath=quickFilmData.posterPath,year=quickFilmData.year,type=quickFilmData.type,resume=quickFilmData.resume;
+  var catVal=document.getElementById('quickAddCatSel').value;
+  var catIdx=(catVal!==''&&catVal!=='__new__')?parseInt(catVal):null;
+  var dvd=document.getElementById('quickAddDvd').checked;
+  var poster=posterPath?IMG+posterPath:'';
+  closeModal('modalQuickAdd');
+  var filmsToAdd=[{id:id,title:title,poster:poster,year:year,type:type,resume:resume,future:false,seasons:0}];
+  function doAdd(flist){var added=0;flist.forEach(function(f){if(addFilmToDB(f,catIdx,dvd))added++;});saveDB();if(currentFilmId&&db.films[currentFilmId])loadSimilar(db.films[currentFilmId]);toast(added>0?'✅ '+added+' film(s) ajouté(s) !':'Déjà dans la collection');}
+  if(type==='movie'){
+    tmdb('/movie/'+id+'?').then(function(details){
+      if(details.belongs_to_collection){
+        tmdb('/collection/'+details.belongs_to_collection.id+'?').then(function(colData){
+          var col=(colData.parts||[]).map(function(m){return{id:m.id,title:m.title||'',poster:m.poster_path?IMG+m.poster_path:'',year:(m.release_date||'').slice(0,4),type:'movie',resume:m.overview||'',future:!!(m.release_date&&new Date(m.release_date)>new Date()),seasons:0};});
+          doAdd(col.length>1?col:filmsToAdd);
+        }).catch(function(){doAdd(filmsToAdd);});
+      }else doAdd(filmsToAdd);
+    }).catch(function(){doAdd(filmsToAdd);});
+  }else doAdd(filmsToAdd);
+}
+
+// DVD
+function renderDVD(){var shelf=document.getElementById('dvdShelf');var dvds=Object.values(db.films).filter(function(f){return f.dvd;});document.getElementById('dvdCount').textContent=dvds.length+' DVD(s)';shelf.innerHTML='';if(!dvds.length){shelf.innerHTML='<div style="color:var(--text2);padding:40px;text-align:center;width:100%">Aucun DVD possédé.</div>';return;}dvds.forEach(function(f){var c=document.createElement('div');c.className='dvdCase';c.innerHTML=(f.poster?'<img src="'+f.poster+'">':`<div style="width:70px;height:105px;background:var(--glass);border-radius:6px;display:flex;align-items:center;justify-content:center">📀</div>`)+'<p>'+f.title+'</p>';c.addEventListener('click',function(){openFilmPage(f.id);});shelf.appendChild(c);});}
+
+// ROULETTE
+function setRouMode(m,btn){rouMode=m;document.querySelectorAll('.rOpt').forEach(function(b){b.classList.toggle('active',b===btn);});document.getElementById('catSelect').style.display=m==='cat'?'':'none';}
+function renderRoulette(){var sel=document.getElementById('catSelect');sel.innerHTML='<option value="">Toutes</option>';db.categories.forEach(function(c,i){sel.innerHTML+='<option value="'+i+'">'+c.name+'</option>';});document.getElementById('rouletteResult').style.display='none';document.getElementById('rouletteTitle').textContent='Quel film ce soir ?';}
+function spinRoulette(){var pool=Object.values(db.films).filter(function(f){return !f.future;});if(rouMode==='cat'){var idx=document.getElementById('catSelect').value;if(idx!=='')pool=pool.filter(function(f){return f.catIdx===parseInt(idx);});}if(!pool.length){toast('Aucun film disponible !');return;}var f=pool[Math.floor(Math.random()*pool.length)];var img=document.getElementById('rouletteResult'),ttl=document.getElementById('rouletteTitle');var spinBtn=document.getElementById('btnSpin');spinBtn.disabled=true;var spins=0;var tick=setInterval(function(){var tmp=pool[Math.floor(Math.random()*pool.length)];ttl.textContent=tmp.title;img.src=tmp.poster||'';img.style.display=tmp.poster?'block':'none';spins++;if(spins>=22){clearInterval(tick);ttl.textContent='🎬 '+f.title;img.src=f.poster||'';img.style.display=f.poster?'block':'none';spinBtn.disabled=false;}},90);}
+
+function openScanner(){
+  var overlay=document.getElementById('scannerOverlay');
+  overlay.classList.add('show');
+  document.getElementById('scannerMsg').textContent='Choisissez un mode ci-dessous';
+  document.getElementById('btnScanBarcode').disabled=false;
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}}).then(function(stream){
+    scanStream=stream;
+    var video=document.getElementById('scannerVideo');
+    video.srcObject=stream;video.play().catch(function(){});
+    document.getElementById('scannerMsg').textContent='Caméra active — choisissez un mode';
+  }).catch(function(err){
+    var msg='⚠️ Caméra inaccessible.';
+    if(err.name==='NotAllowedError')msg='⚠️ Accès caméra refusé. Autorisez la caméra dans les réglages de votre navigateur, puis réessayez.';
+    else if(err.name==='NotFoundError')msg='⚠️ Aucune caméra détectée sur cet appareil.';
+    document.getElementById('scannerMsg').textContent=msg;
+    document.getElementById('btnScanBarcode').disabled=true;
+  });
+}
+function closeScanner(){
+  document.getElementById('scannerOverlay').classList.remove('show');
+  document.getElementById('btnScanBarcode').disabled=false;
+  if(scanStream){scanStream.getTracks().forEach(function(t){t.stop();});scanStream=null;}
+}
+function startBarcodeScan(){
+  if(!scanStream){toast('⚠️ Caméra non disponible');return;}
+  if(!('BarcodeDetector' in window)){document.getElementById('scannerMsg').textContent='⚠️ Détection code-barres non supportée. Essayez Chrome sur Android.';return;}
+  document.getElementById('scannerMsg').textContent='📊 Pointez le code-barres du DVD...';
+  var detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128']});
+  var video=document.getElementById('scannerVideo');
+  var scanning=true,attempts=0;
+  function scan(){
+    if(!scanning||!scanStream)return;
+    if(attempts++>300){document.getElementById('scannerMsg').textContent='Aucun code détecté. Réessayez.';return;}
+    detector.detect(video).then(function(barcodes){
+      if(barcodes.length>0){scanning=false;var code=barcodes[0].rawValue;document.getElementById('scannerMsg').textContent='Code : '+code+' — Recherche...';searchByBarcode(code);}
+      else setTimeout(scan,100);
+    }).catch(function(){setTimeout(scan,100);});
+  }
+  if(video.readyState>=2)scan();else video.addEventListener('loadeddata',function(){scan();},{once:true});
+}
+function searchByBarcode(code){
+  tmdb('/search/movie?query='+encodeURIComponent(code)).then(function(data){
+    var r=data.results&&data.results[0];
+    if(r){closeScanner();inp.value=r.title||'';openModal(r.id,'movie');}
+    else{document.getElementById('scannerMsg').textContent='Aucun film trouvé. Essayez la recherche manuelle.';}
+  }).catch(function(){document.getElementById('scannerMsg').textContent='Erreur de recherche.';});
+}
+function handlePhotoSearch(input){
+  var file=input.files[0];if(!file)return;
+  input.value='';
+  closeScanner();
+  document.getElementById('scannerMsg').textContent='';
+  // Affiche un loader
+  sr.innerHTML='<div style="padding:12px 14px;color:var(--text2)">🤖 Analyse de l\'image en cours...</div>';
+  sr.style.display='block';
+  // Lit l'image en base64
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var b64=e.target.result.split(',')[1];
+    var mediaType=file.type||'image/jpeg';
+    // Envoie à Claude pour identifier le film
+    fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:200,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:mediaType,data:b64}},
+          {type:'text',text:'Regarde cette image. Si c\'est une affiche, jaquette ou couverture de film ou série, donne-moi uniquement le titre exact du film ou de la série. Si tu n\'es pas sûr ou si ce n\'est pas un film/série, réponds juste "inconnu". Réponds avec seulement le titre, rien d\'autre.'}
+        ]}]
+      })
+    }).then(function(r){return r.json();}).then(function(data){
+      var title=(data.content&&data.content[0]&&data.content[0].text||'').trim();
+      if(!title||title.toLowerCase()==='inconnu'||title.toLowerCase().includes('inconnu')){
+        sr.innerHTML='<div style="padding:12px 14px;color:var(--text2)">Film non reconnu. Entrez le titre manuellement.</div>';
+      }else{
+        inp.value=title;
+        doSearch();
+        toast('🎬 Film détecté : '+title);
+      }
+    }).catch(function(){
+      sr.innerHTML='<div style="padding:12px 14px;color:#f88">Erreur d\'analyse. Entrez le titre manuellement.</div>';
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+// EXPORT / IMPORT
+function exportDB(){var blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cinematracker.json';a.click();}
+function importDB(input){var file=input.files[0];if(!file)return;var r=new FileReader();r.onload=function(e){try{db=JSON.parse(e.target.result);saveDB();renderCollection();toast('✅ Données importées !');}catch(ex){toast('❌ Fichier invalide');}};r.readAsText(file);}
+</script>
+</body>
+</html>
