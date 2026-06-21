@@ -551,8 +551,24 @@ function navigate(id){navStack.push(id);showPage(id);}
 function navigateBack(){navStack.pop();showPage(navStack[navStack.length-1]||'pageHome');}
 window.addEventListener('popstate',function(){navigateBack();});
 function showPage(id){
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.page').forEach(function(p){
+    p.classList.remove('active');
+    p.style.display='none';
+  });
+  var el=document.getElementById(id);
+  el.classList.add('active');
+  // Force le bon display selon la page
+  if(id==='pageFilm'){
+    el.style.display='block';
+  }else if(id==='pageHome'||id==='pageRoulette'){
+    el.style.display='flex';
+    el.style.alignItems='center';
+    el.style.justifyContent='center';
+  }else{
+    el.style.display='flex';
+    el.style.alignItems='stretch';
+    el.style.flexDirection='column';
+  }
   if(id==='pageMain')renderStats();
   if(id==='pageCollection'){if(selectMode)toggleSelectMode();renderCollection();}
   if(id==='pageDVD')renderDVD();
