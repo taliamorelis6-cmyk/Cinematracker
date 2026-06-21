@@ -512,6 +512,9 @@ select option{background:#1a003a;}
   <input type="file" id="photoInput" accept="image/*" capture="environment">
 </div>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
 // BRUME
 var canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d');
@@ -529,20 +532,43 @@ var stripPosters=['https://image.tmdb.org/t/p/w92/q6y0Go1tsGEsmtFryDOJo3dEmqu.jp
 var strip=document.getElementById('filmStrip');
 stripPosters.concat(stripPosters).forEach(function(url){var img=document.createElement('img');img.className='stripPoster';img.src=url;img.onerror=function(){img.style.display='none';};strip.appendChild(img);});
 
-// STATE
-var TMDB_KEY='8bf72ea9e49b80b3cbe5f19d1c233e80';
-var IMG='https://image.tmdb.org/t/p/w200';
-var db={categories:[],films:{}};
-var currentFilmId=null,currentView=1,rouMode='random';
-var selectMode=false,selectedIds={};
-var recoPage=1,autoSaveTimer=null;
-var modalFilms=[],quickFilmData=null;
-var recoPopupMovieId=null,recoPopupMovieType=null;
-var filmReadOnly=false,filmReadOnlyData=null;
-var scanMode='barcode',scanStream=null;
+// FIREBASE
+var firebaseConfig={
+  apiKey:"AIzaSyAl7bDvJABFxe2LQWovS7Qx-IssxMbXFKo",
+  authDomain:"cinetracker-73ed5.firebaseapp.com",
+  projectId:"cinetracker-73ed5",
+  storageBucket:"cinetracker-73ed5.firebasestorage.app",
+  messagingSenderId:"334659507000",
+  appId:"1:334659507000:web:b56549a1cb91da359927cd"
+};
+firebase.initializeApp(firebaseConfig);
+var firestore=firebase.firestore();
+var DB_DOC=firestore.collection('users').doc('main');
 
-function loadDB(){try{var s=localStorage.getItem('cinematracker');if(s)db=JSON.parse(s);}catch(e){}}
-function saveDB(){localStorage.setItem('cinematracker',JSON.stringify(db));}
+// Sauvegarde vers Firebase + localStorage
+function saveDB(){
+  localStorage.setItem('cinematracker',JSON.stringify(db));
+  DB_DOC.set(db).catch(function(e){console.log('Firebase save error:',e);});
+}
+
+// Charge depuis Firebase (priorité) ou localStorage (fallback)
+function loadDB(){
+  try{var s=localStorage.getItem('cinematracker');if(s)db=JSON.parse(s);}catch(e){}
+  // Essaie de charger depuis Firebase
+  DB_DOC.get().then(function(doc){
+    if(doc.exists){
+      var remote=doc.data();
+      // Fusionne : garde le plus récent
+      db=remote;
+      localStorage.setItem('cinematracker',JSON.stringify(db));
+      // Rafraîchit l'affichage si déjà sur une page
+      var active=document.querySelector('.page.active');
+      if(active&&active.id==='pageMain')renderStats();
+      if(active&&active.id==='pageCollection')renderCollection();
+      toast('☁️ Données synchronisées !');
+    }
+  }).catch(function(e){console.log('Firebase load error:',e);});
+}
 loadDB();
 
 // NAV
