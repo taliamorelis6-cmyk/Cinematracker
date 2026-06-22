@@ -8,31 +8,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CinéTracker">
 <meta name="theme-color" content="#0d0010">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>
-window.addEventListener('load', function() {
-  var firestore = null;
-  var DB_DOC = null;
-  try {
-    firebase.initializeApp({
-      apiKey: "AIzaSyAl7bDvJABFxe2LQWovS7Qx-IssxMbXFKo",
-      authDomain: "cinetracker-73ed5.firebaseapp.com",
-      projectId: "cinetracker-73ed5",
-      storageBucket: "cinetracker-73ed5.firebasestorage.app",
-      messagingSenderId: "334659507000",
-      appId: "1:334659507000:web:b56549a1cb91da359927cd"
-    });
-    window.firestore = firebase.firestore();
-    window.DB_DOC = window.firestore.collection('users').doc('main');
-    console.log('Firebase OK');
-    loadDB();
-  } catch(e) {
-    console.log('Firebase error:', e);
-    loadDB();
-  }
-});
-</script>
 <style>
 :root{--bg:#0d0010;--violet2:#5a0080;--orange:#c45c00;--orange2:#ff8c00;--rose:#ff6fa8;--blue:#1a6fff;--text:#f5e6ff;--text2:#c9a0e8;--card:rgba(45,0,87,0.55);--glass:rgba(90,0,128,0.25);--border:rgba(255,140,0,0.25);}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -505,28 +480,12 @@ var recoPopupMovieId=null,recoPopupMovieType=null;
 var filmReadOnly=false,filmReadOnlyData=null;
 var scanStream=null;
 
-// DB
-var DB_DOC = window.DB_DOC || null;
+// DB - local uniquement
 function saveDB(){
   localStorage.setItem('cinematracker',JSON.stringify(db));
-  var doc = window.DB_DOC || DB_DOC;
-  if(doc){doc.set(db).catch(function(e){console.log('Firebase save error:',e);});}
 }
 function loadDB(){
   try{var s=localStorage.getItem('cinematracker');if(s)db=JSON.parse(s);}catch(e){}
-  var doc = window.DB_DOC || DB_DOC;
-  if(doc){
-    doc.get().then(function(snap){
-      if(snap.exists){
-        db=snap.data();
-        localStorage.setItem('cinematracker',JSON.stringify(db));
-        var active=document.querySelector('.page.active');
-        if(active&&active.id==='pageMain')renderStats();
-        if(active&&active.id==='pageCollection')renderCollection();
-        toast('☁️ Synchronisé !');
-      }
-    }).catch(function(e){console.log('Firebase load error:',e);});
-  }
 }
 loadDB();
 var navStack=['pageHome'];
