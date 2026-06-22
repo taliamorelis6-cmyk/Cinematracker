@@ -480,9 +480,36 @@ var recoPopupMovieId=null,recoPopupMovieType=null;
 var filmReadOnly=false,filmReadOnlyData=null;
 var scanStream=null;
 
-// DB - local uniquement
+// DB
+var DB_DOC = null;
+function initFirebase(){
+  try{
+    firebase.initializeApp({
+      apiKey:"AIzaSyAl7bDvJABFxe2LQWovS7Qx-IssxMbXFKo",
+      authDomain:"cinetracker-73ed5.firebaseapp.com",
+      projectId:"cinetracker-73ed5",
+      storageBucket:"cinetracker-73ed5.firebasestorage.app",
+      messagingSenderId:"334659507000",
+      appId:"1:334659507000:web:b56549a1cb91da359927cd"
+    });
+    DB_DOC=firebase.firestore().collection('users').doc('main');
+    console.log('Firebase OK');
+    // Sync depuis Firebase
+    DB_DOC.get().then(function(snap){
+      if(snap.exists){
+        db=snap.data();
+        localStorage.setItem('cinematracker',JSON.stringify(db));
+        var active=document.querySelector('.page.active');
+        if(active&&active.id==='pageMain')renderStats();
+        if(active&&active.id==='pageCollection')renderCollection();
+        toast('☁️ Synchronisé !');
+      }
+    }).catch(function(e){console.log('Firebase get error:',e);});
+  }catch(e){console.log('Firebase init error:',e);}
+}
 function saveDB(){
   localStorage.setItem('cinematracker',JSON.stringify(db));
+  if(DB_DOC)DB_DOC.set(db).catch(function(e){console.log('Firebase save error:',e);});
 }
 function loadDB(){
   try{var s=localStorage.getItem('cinematracker');if(s)db=JSON.parse(s);}catch(e){}
@@ -937,5 +964,8 @@ function handlePhotoSearch(input){
 function exportDB(){var blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cinematracker.json';a.click();}
 function importDB(input){var file=input.files[0];if(!file)return;var r=new FileReader();r.onload=function(e){try{db=JSON.parse(e.target.result);saveDB();renderCollection();toast('✅ Données importées !');}catch(ex){toast('❌ Fichier invalide');}};r.readAsText(file);}
 </script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>initFirebase();</script>
 </body>
 </html>
