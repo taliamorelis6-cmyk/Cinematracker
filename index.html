@@ -70,14 +70,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #colSearchInput{width:100%;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--glass);color:var(--text);outline:none;margin-bottom:8px;}
 #colBody{width:100%;padding:12px 16px;padding-bottom:80px;}
 
-/* Ligne de catégorie sur Ma Collection */
 .catTopRow{display:flex;align-items:center;gap:8px;padding:13px 14px;cursor:pointer;background:linear-gradient(90deg,var(--v2),var(--or));border-radius:14px;margin-bottom:10px;border:1px solid var(--border);}
 .catTopRow .catName{flex:1;font-weight:700;font-size:.97rem;}
 .catTopRow .catDvdCount{font-size:.75rem;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px;}
 .catTopRow .catActions{display:flex;gap:4px;}
 .catTopRow .catBtn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap;}
 
-/* ===== PAGE NIVEAU (catégorie / sous-catégorie / collection) ===== */
+/* ===== PAGE NIVEAU ===== */
 #pageLevel{padding:0;}
 #levelHeader{width:100%;padding:14px 16px;background:rgba(13,0,16,.9);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
 #levelTopRow{display:flex;align-items:flex-start;gap:9px;margin-bottom:8px;}
@@ -95,7 +94,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #levelSearchInput{width:100%;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--glass);color:var(--text);outline:none;margin-top:9px;}
 #levelBody{width:100%;padding:12px 16px;padding-bottom:80px;}
 
-/* Lignes de sous-catégorie / collection dans la page niveau */
 .groupRow{display:flex;align-items:center;gap:8px;padding:11px 13px;cursor:pointer;border-radius:12px;margin-bottom:9px;border:1px solid rgba(255,255,255,.08);}
 .groupRow.subCatRow{background:rgba(90,0,128,.22);border-left:3px solid var(--v2);}
 .groupRow.colRow{background:rgba(255,140,0,.12);border-left:3px solid var(--or);}
@@ -147,6 +145,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #filmReadonlyBanner{background:rgba(255,140,0,.1);border:1px solid var(--border);border-radius:12px;padding:10px 13px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;width:100%;box-sizing:border-box;}
 #filmReadonlyBanner span{font-size:.83rem;color:var(--text2);}
 #btnAddFromFiche{background:linear-gradient(135deg,var(--or),var(--v2));border:none;color:#fff;padding:6px 14px;border-radius:11px;cursor:pointer;font-size:.83rem;}
+/* ===== BOUTON SUPPRIMER FILM ===== */
+#btnDeleteFilm{background:rgba(255,60,60,.15);border:1px solid rgba(255,60,60,.35);color:#f88;padding:10px;border-radius:14px;font-size:.88rem;cursor:pointer;width:100%;margin-top:4px;margin-bottom:10px;font-weight:600;}
+#btnDeleteFilm:hover{background:rgba(255,60,60,.28);}
 .seasonRow{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);}
 .seasonRow input{accent-color:var(--or2);width:15px;height:15px;cursor:pointer;}
 #similSection{margin-top:22px;width:100%;}
@@ -273,7 +274,7 @@ select option{background:#1a003a;}
   </div>
 </div>
 
-<!-- COLLECTION (liste des catégories uniquement) -->
+<!-- COLLECTION -->
 <div id="pageCollection" class="page">
   <div id="colHeader">
     <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;">
@@ -293,7 +294,7 @@ select option{background:#1a003a;}
   <div id="colBody"></div>
 </div>
 
-<!-- PAGE NIVEAU : catégorie / sous-catégorie / collection -->
+<!-- PAGE NIVEAU -->
 <div id="pageLevel" class="page">
   <div id="levelHeader">
     <div id="levelTopRow">
@@ -356,6 +357,8 @@ select option{background:#1a003a;}
       <div class="dSec"><label>Note</label><div class="stars" id="starRow"><span class="star" data-i="1">⭐</span><span class="star" data-i="2">⭐</span><span class="star" data-i="3">⭐</span><span class="star" data-i="4">⭐</span><span class="star" data-i="5">⭐</span></div></div>
       <div class="dSec"><label>Commentaire</label><textarea id="filmComment" placeholder="Votre avis..."></textarea></div>
       <div id="seasonsSection" class="dSec" style="display:none"><label>Saisons</label><div id="seasonsList"></div></div>
+      <!-- BOUTON SUPPRIMER -->
+      <button id="btnDeleteFilm">🗑️ Supprimer de ma collection</button>
     </div>
     <div id="similSection"><h3>✨ Films similaires</h3><div id="similScroll"></div></div>
   </div>
@@ -495,18 +498,65 @@ var filmReadOnly=false,filmReadOnlyData=null;
 var scanStream=null;
 var renameTarget=null;
 var DB_DOC=null;
-
-// Position courante dans la collection : {catIdx, subKey, subColKey}
-// subKey: null | 'sub_N' | 'col_N'   (niveau dans la catégorie)
-// subColKey: null | 'subcol_N'      (niveau dans la sous-catégorie, uniquement si subKey='sub_N')
 var levelPos={catIdx:null,subKey:null,subColKey:null};
 
 function saveDB(){localStorage.setItem('ct',JSON.stringify(db));if(DB_DOC)DB_DOC.set(db).catch(function(){});}
 function loadDB(){try{var s=localStorage.getItem('ct');if(s)db=JSON.parse(s);}catch(e){}}
+
+// ===== NETTOYAGE FILMS FANTÔMES =====
+// Supprime de db.films tout film dont la catégorie référencée n'existe plus
+function purgeOrphanFilms(){
+  var changed=false;
+  Object.keys(db.films).forEach(function(id){
+    var f=db.films[id];
+    if(f.catIdx===null||f.catIdx===undefined)return; // sans catégorie = OK
+    var cat=db.categories[f.catIdx];
+    if(!cat){delete db.films[id];changed=true;return;}
+    // Vérifier sous-cat
+    if(f.subKey&&f.subKey.startsWith('sub_')){
+      var si=parseInt(f.subKey.replace('sub_',''));
+      if(!cat.subCategories||!cat.subCategories[si]){delete db.films[id];changed=true;return;}
+      // Vérifier sous-collection
+      if(f.subColKey&&f.subColKey.startsWith('subcol_')){
+        var sci=parseInt(f.subColKey.replace('subcol_',''));
+        var sub=cat.subCategories[si];
+        if(!sub.collections||!sub.collections[sci]){delete db.films[id];changed=true;return;}
+      }
+    }else if(f.subKey&&f.subKey.startsWith('col_')){
+      var ci=parseInt(f.subKey.replace('col_',''));
+      if(!cat.collections||!cat.collections[ci]){delete db.films[id];changed=true;return;}
+    }
+  });
+  if(changed)saveDB();
+}
+
 loadDB();
+purgeOrphanFilms(); // Nettoyage au démarrage
 
 function ensureCat(cat){if(!cat.films)cat.films=[];if(!cat.subCategories)cat.subCategories=[];if(!cat.collections)cat.collections=[];}
 function ensureSub(sub){if(!sub.films)sub.films=[];if(!sub.collections)sub.collections=[];}
+
+// ===== SUPPRESSION D'UN FILM DE db.films =====
+function removeFilmFromDB(id){
+  var f=db.films[id];if(!f)return;
+  // Retirer des listes de catégorie
+  if(f.catIdx!==null&&f.catIdx!==undefined&&db.categories[f.catIdx]){
+    var cat=db.categories[f.catIdx];ensureCat(cat);
+    if(f.subKey&&f.subKey.startsWith('sub_')){
+      var si=parseInt(f.subKey.replace('sub_',''));var sub=cat.subCategories[si];
+      if(sub){ensureSub(sub);
+        if(f.subColKey&&f.subColKey.startsWith('subcol_')){
+          var sci=parseInt(f.subColKey.replace('subcol_',''));
+          if(sub.collections[sci])sub.collections[sci].films=(sub.collections[sci].films||[]).filter(function(x){return x!=id;});
+        }else{sub.films=(sub.films||[]).filter(function(x){return x!=id;});}
+      }
+    }else if(f.subKey&&f.subKey.startsWith('col_')){
+      var ci=parseInt(f.subKey.replace('col_',''));
+      if(cat.collections[ci])cat.collections[ci].films=(cat.collections[ci].films||[]).filter(function(x){return x!=id;});
+    }else{cat.films=(cat.films||[]).filter(function(x){return x!=id;});}
+  }
+  delete db.films[id];
+}
 
 // ===== NAV =====
 var navStack=['pageHome'];
@@ -575,10 +625,44 @@ document.getElementById('filmCatSelect').addEventListener('change',function(){up
 document.getElementById('filmSubSelect').addEventListener('change',function(){updateFilmCat();renderFilmSubColSelect();});
 document.getElementById('filmSubColSelect').addEventListener('change',function(){updateFilmCat();});
 
-document.querySelectorAll('.sBnt').forEach(function(b){b.addEventListener('click',function(){if(filmReadOnly)return;if(b.classList.contains('dvdBtn')){currentDVD=!currentDVD;b.classList.toggle('active',currentDVD);autoSave();}else{currentStatus=b.getAttribute('data-s');document.querySelectorAll('.sBnt:not(.dvdBtn)').forEach(function(x){x.classList.toggle('active',x===b);});autoSave();}});});
+// ===== BOUTONS STATUT : TOGGLE =====
+document.querySelectorAll('.sBnt').forEach(function(b){
+  b.addEventListener('click',function(){
+    if(filmReadOnly)return;
+    if(b.classList.contains('dvdBtn')){
+      // Toggle DVD
+      currentDVD=!currentDVD;
+      b.classList.toggle('active',currentDVD);
+      autoSave();
+    }else{
+      var s=b.getAttribute('data-s');
+      if(currentStatus===s){
+        // Déjà actif → désactiver
+        currentStatus=null;
+        b.classList.remove('active');
+      }else{
+        // Activer ce bouton, désactiver les autres
+        currentStatus=s;
+        document.querySelectorAll('.sBnt:not(.dvdBtn)').forEach(function(x){x.classList.toggle('active',x===b);});
+      }
+      autoSave();
+    }
+  });
+});
+
 document.querySelectorAll('.star').forEach(function(s){s.addEventListener('click',function(){if(filmReadOnly)return;currentNote=parseInt(s.getAttribute('data-i'));document.querySelectorAll('.star').forEach(function(st){st.classList.toggle('on',parseInt(st.getAttribute('data-i'))<=currentNote);});autoSave();});});
 
-// Sous-selects dans modals (niveau 2 : sous-cat/collection de catégorie)
+// ===== SUPPRIMER DEPUIS LA FICHE =====
+document.getElementById('btnDeleteFilm').addEventListener('click',function(){
+  if(!currentFilmId||!db.films[currentFilmId])return;
+  var titre=db.films[currentFilmId].title||'ce film';
+  if(!confirm('Supprimer "'+titre+'" de votre collection ?'))return;
+  removeFilmFromDB(currentFilmId);
+  saveDB();
+  toast('🗑️ "'+titre+'" supprimé !');
+  navigateBack();
+});
+
 ['modalCatSel','mCatSel','moveCatSel'].forEach(function(id){
   document.getElementById(id).addEventListener('change',function(){renderSubSelectForModal(id);});
 });
@@ -600,7 +684,7 @@ function tmdb(p){return fetch('https://api.themoviedb.org/3'+p+'&api_key='+TK+'&
 function tmdbEn(p){return fetch('https://api.themoviedb.org/3'+p+'&api_key='+TK+'&language=en-US').then(function(r){return r.json();});}
 function norm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
 
-// ===== SEARCH (TMDB - page principale) =====
+// ===== SEARCH =====
 var inp=document.getElementById('searchInput'),sr=document.getElementById('searchResults'),stimer;
 inp.addEventListener('input',function(){clearTimeout(stimer);if(!inp.value.trim()){sr.style.display='none';return;}stimer=setTimeout(doSearch,400);});
 document.addEventListener('click',function(e){if(!e.target.closest('#searchWrap')&&!e.target.closest('.modal'))sr.style.display='none';});
@@ -691,7 +775,7 @@ function renderModalPreview(){
 }
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 
-// ===== SÉLECTEURS CATÉGORIES (niveau 1) =====
+// ===== SÉLECTEURS CATÉGORIES =====
 function renderCatSel(selId){
   var sel=document.getElementById(selId);
   sel.innerHTML='<option value="">— Sans catégorie —</option>';
@@ -703,7 +787,6 @@ function renderCatSel(selId){
   };
 }
 
-// ===== SÉLECTEUR NIVEAU 2 : sous-cat ou collection de la catégorie =====
 function renderSubSelectForModal(catSelId){
   var map={
     'modalCatSel': {sub:'modalSubSel',subLbl:'modalSubLbl',subCol:'modalSubColSel',subColLbl:'modalSubColLbl'},
@@ -716,21 +799,17 @@ function renderSubSelectForModal(catSelId){
   var subLbl=document.getElementById(ids.subLbl);
   var subColSel=document.getElementById(ids.subCol);
   var subColLbl=document.getElementById(ids.subColLbl);
-
   if(subColSel){subColSel.style.display='none';if(subColLbl)subColLbl.style.display='none';}
-
   var catIdx=catSel.value!==''&&catSel.value!=='__new__'?parseInt(catSel.value):null;
   if(catIdx===null){subSel.style.display='none';if(subLbl)subLbl.style.display='none';return;}
   var cat=db.categories[catIdx];ensureCat(cat);
   var hasSubs=(cat.subCategories&&cat.subCategories.length>0)||(cat.collections&&cat.collections.length>0);
   if(!hasSubs){subSel.style.display='none';if(subLbl)subLbl.style.display='none';return;}
-
   subSel.innerHTML='<option value="">— Directement dans la catégorie —</option>';
   (cat.subCategories||[]).forEach(function(s,i){subSel.innerHTML+='<option value="sub_'+i+'">📁 '+s.name+'</option>';});
   (cat.collections||[]).forEach(function(c,i){subSel.innerHTML+='<option value="col_'+i+'">🎬 '+c.name+'</option>';});
   subSel.innerHTML+='<option value="__newSub__">+ Nouvelle sous-catégorie</option><option value="__newCol__">+ Nouvelle collection</option>';
   subSel.style.display='';if(subLbl)subLbl.style.display='';
-
   subSel.onchange=function(){
     var cat2=db.categories[catIdx];ensureCat(cat2);
     if(subSel.value==='__newSub__'){var n=prompt('Nom de la sous-catégorie :');if(n&&n.trim()){cat2.subCategories.push({name:n.trim(),films:[],collections:[]});saveDB();renderSubSelectForModal(catSelId);subSel.value='sub_'+(cat2.subCategories.length-1);toast('📁 "'+n+'" créée !');}else subSel.value='';}
@@ -740,7 +819,6 @@ function renderSubSelectForModal(catSelId){
   renderSubColSelectForModal(catSelId);
 }
 
-// ===== SÉLECTEUR NIVEAU 3 : collection dans une sous-catégorie =====
 function renderSubColSelectForModal(catSelId){
   var map={
     'modalCatSel': {sub:'modalSubSel',subCol:'modalSubColSel',subColLbl:'modalSubColLbl'},
@@ -752,24 +830,19 @@ function renderSubColSelectForModal(catSelId){
   var subSel=document.getElementById(ids.sub);
   var subColSel=document.getElementById(ids.subCol);
   var subColLbl=document.getElementById(ids.subColLbl);
-
   var catIdx=catSel.value!==''&&catSel.value!=='__new__'?parseInt(catSel.value):null;
   if(catIdx===null||!subSel||subSel.style.display==='none'){if(subColSel){subColSel.style.display='none';if(subColLbl)subColLbl.style.display='none';}return;}
-
   var subVal=subSel.value;
   if(!subVal||!subVal.startsWith('sub_')){if(subColSel){subColSel.style.display='none';if(subColLbl)subColLbl.style.display='none';}return;}
-
   var si=parseInt(subVal.replace('sub_',''));
   var cat=db.categories[catIdx];ensureCat(cat);
   var sub=cat.subCategories[si];
   if(!sub){if(subColSel){subColSel.style.display='none';if(subColLbl)subColLbl.style.display='none';}return;}
   ensureSub(sub);
-
   subColSel.innerHTML='<option value="">— Directement dans la sous-catégorie —</option>';
   (sub.collections||[]).forEach(function(c,i){subColSel.innerHTML+='<option value="subcol_'+i+'">🎬 '+c.name+'</option>';});
   subColSel.innerHTML+='<option value="__newSubCol__">+ Nouvelle collection</option>';
   subColSel.style.display='';if(subColLbl)subColLbl.style.display='';
-
   subColSel.onchange=function(){
     if(subColSel.value==='__newSubCol__'){
       var n=prompt('Nom de la collection :');
@@ -784,7 +857,6 @@ function renderSubColSelectForModal(catSelId){
   };
 }
 
-// ===== PLACEMENT (catégorie + sous-cat + collection de sous-cat) =====
 function getPlacement(catSelId){
   var map={
     'modalCatSel': {sub:'modalSubSel',subCol:'modalSubColSel'},
@@ -806,27 +878,19 @@ function getPlacement(catSelId){
   return{catIdx:catIdx,subKey:subKey,subColKey:subColKey};
 }
 
-// ===== AJOUT FILM EN DB =====
 function addFilmToDB(f,catIdx,subKey,subColKey,dvd){
   if(db.films[f.id])return false;
   db.films[f.id]={id:f.id,title:f.title,poster:f.poster,year:f.year,type:f.type,dvd:!!dvd,status:'voir',note:0,comment:'',resume:f.resume||'',seasons:f.seasons||0,seasonsChecked:[],catIdx:catIdx,subKey:subKey||null,subColKey:subColKey||null,future:!!f.future};
   if(catIdx!==null&&catIdx!==undefined){
     var cat=db.categories[catIdx];ensureCat(cat);
     if(subKey&&subKey.startsWith('sub_')){
-      var si=parseInt(subKey.replace('sub_',''));
-      var sub=cat.subCategories[si];ensureSub(sub);
-      if(subColKey&&subColKey.startsWith('subcol_')){
-        var sci=parseInt(subColKey.replace('subcol_',''));
-        if(sub.collections[sci]){if(!sub.collections[sci].films)sub.collections[sci].films=[];if(sub.collections[sci].films.indexOf(f.id)===-1)sub.collections[sci].films.push(f.id);}
-      }else{
-        if(sub.films.indexOf(f.id)===-1)sub.films.push(f.id);
-      }
+      var si=parseInt(subKey.replace('sub_',''));var sub=cat.subCategories[si];ensureSub(sub);
+      if(subColKey&&subColKey.startsWith('subcol_')){var sci=parseInt(subColKey.replace('subcol_',''));if(sub.collections[sci]){if(!sub.collections[sci].films)sub.collections[sci].films=[];if(sub.collections[sci].films.indexOf(f.id)===-1)sub.collections[sci].films.push(f.id);}}
+      else{if(sub.films.indexOf(f.id)===-1)sub.films.push(f.id);}
     }else if(subKey&&subKey.startsWith('col_')){
       var ci=parseInt(subKey.replace('col_',''));
       if(cat.collections[ci]){if(!cat.collections[ci].films)cat.collections[ci].films=[];if(cat.collections[ci].films.indexOf(f.id)===-1)cat.collections[ci].films.push(f.id);}
-    }else{
-      if(cat.films.indexOf(f.id)===-1)cat.films.push(f.id);
-    }
+    }else{if(cat.films.indexOf(f.id)===-1)cat.films.push(f.id);}
   }
   return true;
 }
@@ -848,28 +912,20 @@ function confirmManuel(){
   db.films[id]={id:id,title:title,poster:document.getElementById('mPoster').value.trim(),year:document.getElementById('mYear').value.trim(),type:document.getElementById('mType').value,dvd:document.getElementById('mDvd').checked,status:'voir',note:0,comment:'',resume:document.getElementById('mResume').value.trim(),seasons:parseInt(document.getElementById('mSeasons').value)||0,seasonsChecked:[],catIdx:pl.catIdx,subKey:pl.subKey||null,subColKey:pl.subColKey||null,future:false,manual:true};
   if(pl.catIdx!==null){
     var cat=db.categories[pl.catIdx];ensureCat(cat);
-    if(pl.subKey&&pl.subKey.startsWith('sub_')){
-      var si=parseInt(pl.subKey.replace('sub_',''));var sub=cat.subCategories[si];ensureSub(sub);
-      if(pl.subColKey&&pl.subColKey.startsWith('subcol_')){var sci=parseInt(pl.subColKey.replace('subcol_',''));if(!sub.collections[sci].films)sub.collections[sci].films=[];sub.collections[sci].films.push(id);}
-      else{sub.films.push(id);}
-    }else if(pl.subKey&&pl.subKey.startsWith('col_')){var ci=parseInt(pl.subKey.replace('col_',''));if(!cat.collections[ci].films)cat.collections[ci].films=[];cat.collections[ci].films.push(id);}
+    if(pl.subKey&&pl.subKey.startsWith('sub_')){var si=parseInt(pl.subKey.replace('sub_',''));var sub=cat.subCategories[si];ensureSub(sub);if(pl.subColKey&&pl.subColKey.startsWith('subcol_')){var sci=parseInt(pl.subColKey.replace('subcol_',''));if(!sub.collections[sci].films)sub.collections[sci].films=[];sub.collections[sci].films.push(id);}else{sub.films.push(id);}}
+    else if(pl.subKey&&pl.subKey.startsWith('col_')){var ci=parseInt(pl.subKey.replace('col_',''));if(!cat.collections[ci].films)cat.collections[ci].films=[];cat.collections[ci].films.push(id);}
     else cat.films.push(id);
   }
   saveDB();closeModal('modalManuel');toast('✅ "'+title+'" ajouté !');
 }
 
-// ===== MA COLLECTION (liste des catégories) =====
+// ===== MA COLLECTION =====
 function addCategory(){var n=prompt('Nom de la catégorie :');if(!n||!n.trim())return;db.categories.push({name:n.trim(),films:[],subCategories:[],collections:[]});saveDB();renderCollection();toast('📂 "'+n+'" créée !');}
 
 function renderCollection(){
   document.getElementById('colSearchInput').value='';
   var body=document.getElementById('colBody');body.innerHTML='';
-
-  if(!db.categories.length){
-    body.innerHTML='<div style="color:var(--text2);padding:38px;text-align:center;width:100%">Aucune catégorie. Créez-en une !</div>';
-    return;
-  }
-
+  if(!db.categories.length){body.innerHTML='<div style="color:var(--text2);padding:38px;text-align:center;width:100%">Aucune catégorie. Créez-en une !</div>';return;}
   db.categories.forEach(function(cat,ci){
     ensureCat(cat);
     var allCatFilms=collectAllFilmsOfCategory(cat);
@@ -881,10 +937,23 @@ function renderCollection(){
   });
 
   body.querySelectorAll('.btnRenameTop').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();openRename('cat',parseInt(btn.getAttribute('data-ci')),null,null);});});
-  body.querySelectorAll('.btnDelCatTop').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();var ci=parseInt(btn.getAttribute('data-ci'));if(!confirm('Supprimer la catégorie "'+db.categories[ci].name+'" ?'))return;db.categories.splice(ci,1);Object.values(db.films).forEach(function(f){if(f.catIdx===ci){f.catIdx=null;f.subKey=null;f.subColKey=null;}else if(f.catIdx>ci)f.catIdx--;});saveDB();renderCollection();});});
+  body.querySelectorAll('.btnDelCatTop').forEach(function(btn){btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    var ci=parseInt(btn.getAttribute('data-ci'));
+    var cat=db.categories[ci];
+    var allFilms=collectAllFilmsOfCategory(cat);
+    var msg='Supprimer la catégorie "'+cat.name+'"';
+    if(allFilms.length>0)msg+=' et ses '+allFilms.length+' film(s) ?';else msg+=' ?';
+    if(!confirm(msg))return;
+    // Suppression en cascade
+    allFilms.forEach(function(f){if(f)delete db.films[f.id];});
+    db.categories.splice(ci,1);
+    // Réindexer les films restants
+    Object.values(db.films).forEach(function(f){if(f.catIdx===ci){f.catIdx=null;f.subKey=null;f.subColKey=null;}else if(f.catIdx>ci)f.catIdx--;});
+    saveDB();renderCollection();
+  });});
 }
 
-// Récupère tous les films appartenant (à n'importe quel niveau) à une catégorie
 function collectAllFilmsOfCategory(cat){
   ensureCat(cat);
   var films=(cat.films||[]).map(function(id){return db.films[id];}).filter(Boolean);
@@ -897,7 +966,6 @@ function collectAllFilmsOfCategory(cat){
   return films;
 }
 
-// ===== RECHERCHE GLOBALE (sur Ma Collection) =====
 function renderGlobalSearch(){
   var q=document.getElementById('colSearchInput').value.trim().toLowerCase();
   var body=document.getElementById('colBody');
@@ -929,77 +997,50 @@ function groupBySaga(films){var map={},order=[];films.forEach(function(f){var k=
 function sagaKey(t){return t.toLowerCase().replace(/\s*([-:]\s*|\s+)(chapitre|chapter|part|partie|saison|season|volume|vol|episode|\d+|i{1,3}|iv|vi{0,3}|ix)\b.*/i,'').replace(/\s+\d+$/,'').trim();}
 function sagaName(t){return t.replace(/\s*([-:]\s*|\s+)(chapitre|chapter|part|partie|saison|season|volume|vol|\d+|i{1,3}|iv|vi{0,3}|ix)\b.*/i,'').replace(/\s+\d+$/,'').trim();}
 
-// ===== HELPERS NIVEAU (catégorie/sous-cat/collection) =====
+// ===== HELPERS NIVEAU =====
 function getCat(){return levelPos.catIdx!==null?db.categories[levelPos.catIdx]:null;}
 function getSub(){var cat=getCat();if(!cat||!levelPos.subKey||!levelPos.subKey.startsWith('sub_'))return null;ensureCat(cat);var si=parseInt(levelPos.subKey.replace('sub_',''));return cat.subCategories[si]||null;}
 function getColInCat(){var cat=getCat();if(!cat||!levelPos.subKey||!levelPos.subKey.startsWith('col_'))return null;ensureCat(cat);var ci=parseInt(levelPos.subKey.replace('col_',''));return cat.collections[ci]||null;}
 function getColInSub(){var sub=getSub();if(!sub||!levelPos.subColKey||!levelPos.subColKey.startsWith('subcol_'))return null;ensureSub(sub);var sci=parseInt(levelPos.subColKey.replace('subcol_',''));return sub.collections[sci]||null;}
-
-// Détermine le "type" de la vue courante : 'cat' | 'sub' | 'col' (collection, peu importe son parent)
 function getLevelType(){
-  if(levelPos.subKey&&levelPos.subKey.startsWith('sub_')){
-    if(levelPos.subColKey)return 'col';
-    return 'sub';
-  }else if(levelPos.subKey&&levelPos.subKey.startsWith('col_')){
-    return 'col';
-  }
+  if(levelPos.subKey&&levelPos.subKey.startsWith('sub_')){if(levelPos.subColKey)return 'col';return 'sub';}
+  else if(levelPos.subKey&&levelPos.subKey.startsWith('col_'))return 'col';
   return 'cat';
 }
-
-function openLevel(pos){
-  levelPos=pos;
-  navigate('pageLevel');
-}
-
+function openLevel(pos){levelPos=pos;navigate('pageLevel');}
 function openLevelRename(){
   var type=getLevelType();
   if(type==='cat')openRename('cat',levelPos.catIdx,null,null);
   else if(type==='sub')openRename('sub',levelPos.catIdx,parseInt(levelPos.subKey.replace('sub_','')),null);
   else if(type==='col'){
-    if(levelPos.subColKey){
-      openRename('subcol',levelPos.catIdx,parseInt(levelPos.subKey.replace('sub_','')),parseInt(levelPos.subColKey.replace('subcol_','')));
-    }else{
-      openRename('col',levelPos.catIdx,null,parseInt(levelPos.subKey.replace('col_','')));
-    }
+    if(levelPos.subColKey)openRename('subcol',levelPos.catIdx,parseInt(levelPos.subKey.replace('sub_','')),parseInt(levelPos.subColKey.replace('subcol_','')));
+    else openRename('col',levelPos.catIdx,null,parseInt(levelPos.subKey.replace('col_','')));
   }
 }
 
-// ===== RENDU DE LA PAGE NIVEAU =====
+// ===== RENDU PAGE NIVEAU =====
 function renderLevelPage(){
   var type=getLevelType();
   var cat=getCat();
   if(!cat){navigateBack();return;}
-
-  var name='',films=[],actionsHtml='',breadcrumbHtml='';
-
+  var name='',actionsHtml='',breadcrumbHtml='';
   if(type==='cat'){
-    ensureCat(cat);
-    name=cat.name;
-    breadcrumbHtml='';
+    ensureCat(cat);name=cat.name;breadcrumbHtml='';
     actionsHtml='<button class="levelActBtn" id="lvlAddSub">+ 📁 Sous-catégorie</button><button class="levelActBtn" id="lvlAddCol">+ 🎬 Collection</button><button class="levelActBtn secondary" id="lvlSelect">☑️ Sélect.</button>';
   }else if(type==='sub'){
-    var sub=getSub();if(!sub){navigateBack();return;}ensureSub(sub);
-    name=sub.name;
+    var sub=getSub();if(!sub){navigateBack();return;}ensureSub(sub);name=sub.name;
     breadcrumbHtml='<span class="bcLink" data-nav="cat">'+cat.name+'</span>';
     actionsHtml='<button class="levelActBtn" id="lvlAddSubCol">+ 🎬 Collection</button><button class="levelActBtn secondary" id="lvlSelect">☑️ Sélect.</button>';
   }else if(type==='col'){
-    var coll=levelPos.subColKey?getColInSub():getColInCat();
-    if(!coll){navigateBack();return;}
-    name=coll.name;
-    if(levelPos.subColKey){
-      var parentSub=getSub();
-      breadcrumbHtml='<span class="bcLink" data-nav="cat">'+cat.name+'</span><span class="bcSep">&lt;</span><span class="bcLink" data-nav="sub">'+(parentSub?parentSub.name:'')+'</span>';
-    }else{
-      breadcrumbHtml='<span class="bcLink" data-nav="cat">'+cat.name+'</span>';
-    }
+    var coll=levelPos.subColKey?getColInSub():getColInCat();if(!coll){navigateBack();return;}name=coll.name;
+    if(levelPos.subColKey){var parentSub=getSub();breadcrumbHtml='<span class="bcLink" data-nav="cat">'+cat.name+'</span><span class="bcSep">&lt;</span><span class="bcLink" data-nav="sub">'+(parentSub?parentSub.name:'')+'</span>';}
+    else breadcrumbHtml='<span class="bcLink" data-nav="cat">'+cat.name+'</span>';
     actionsHtml='<button class="levelActBtn secondary" id="lvlSelect">☑️ Sélect.</button>';
   }
-
   document.getElementById('levelTitle').textContent=(type==='cat'?'📂 ':type==='sub'?'📁 ':'🎬 ')+name;
   document.getElementById('levelActions').innerHTML=actionsHtml;
   document.getElementById('levelBreadcrumb').innerHTML=breadcrumbHtml;
   document.getElementById('levelSearchInput').value='';
-
   document.querySelectorAll('#levelBreadcrumb .bcLink').forEach(function(el){
     el.addEventListener('click',function(){
       var nav=el.getAttribute('data-nav');
@@ -1007,15 +1048,12 @@ function renderLevelPage(){
       else if(nav==='sub'){levelPos={catIdx:levelPos.catIdx,subKey:levelPos.subKey,subColKey:null};renderLevelPage();}
     });
   });
-
-  if(selectMode){toggleSelectMode();}
+  if(selectMode)toggleSelectMode();
   renderLevelBody();
-
   var addSubBtn=document.getElementById('lvlAddSub');if(addSubBtn)addSubBtn.addEventListener('click',function(){var n=prompt('Nom de la sous-catégorie :');if(!n||!n.trim())return;ensureCat(cat);cat.subCategories.push({name:n.trim(),films:[],collections:[]});saveDB();renderLevelBody();toast('📁 Créée !');});
   var addColBtn=document.getElementById('lvlAddCol');if(addColBtn)addColBtn.addEventListener('click',function(){var n=prompt('Nom de la collection :');if(!n||!n.trim())return;ensureCat(cat);cat.collections.push({name:n.trim(),films:[]});saveDB();renderLevelBody();toast('🎬 Créée !');});
   var addSubColBtn=document.getElementById('lvlAddSubCol');if(addSubColBtn)addSubColBtn.addEventListener('click',function(){var sub2=getSub();if(!sub2)return;var n=prompt('Nom de la collection :');if(!n||!n.trim())return;ensureSub(sub2);sub2.collections.push({name:n.trim(),films:[]});saveDB();renderLevelBody();toast('🎬 Créée !');});
   var selectBtn=document.getElementById('lvlSelect');if(selectBtn)selectBtn.addEventListener('click',function(){toggleSelectMode();});
-
   document.getElementById('levelSearchInput').oninput=function(){renderLevelBody();};
 }
 
@@ -1024,40 +1062,31 @@ function renderLevelBody(){
   var cat=getCat();
   var q=document.getElementById('levelSearchInput').value.trim().toLowerCase();
   var body=document.getElementById('levelBody');body.innerHTML='';
-
   function matchFilm(f){return f&&(!q||f.title.toLowerCase().indexOf(q)!==-1);}
 
   if(type==='cat'){
-    ensureCat(cat);
-    var hasContent=false;
-
+    ensureCat(cat);var hasContent=false;
     if((cat.subCategories||[]).length){
       body.innerHTML+='<div class="sectionLbl">📁 Sous-catégories</div>';
       cat.subCategories.forEach(function(sub,si){
         ensureSub(sub);
-        var subFilms=collectAllFilmsOfSub(sub);
-        var dvd=getDvdInfo(subFilms);
+        var subFilms=collectAllFilmsOfSub(sub);var dvd=getDvdInfo(subFilms);
         var row=document.createElement('div');row.className='groupRow subCatRow';
         row.innerHTML='<span class="groupName">📁 '+sub.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameSub" data-si="'+si+'">✏️</button><button class="groupBtn btnDelSub" data-si="'+si+'">🗑️</button></div>';
         row.addEventListener('click',function(e){if(e.target.closest('.groupActions'))return;openLevel({catIdx:levelPos.catIdx,subKey:'sub_'+si,subColKey:null});});
         body.appendChild(row);
-      });
-      hasContent=true;
+      });hasContent=true;
     }
-
     if((cat.collections||[]).length){
       body.innerHTML+='<div class="sectionLbl">🎬 Collections</div>';
       cat.collections.forEach(function(coll,coli){
-        var collFilms=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);
-        var dvd=getDvdInfo(collFilms);
+        var collFilms=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);var dvd=getDvdInfo(collFilms);
         var row=document.createElement('div');row.className='groupRow colRow';
         row.innerHTML='<span class="groupName">🎬 '+coll.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameCol" data-coli="'+coli+'">✏️</button><button class="groupBtn btnDelCol" data-coli="'+coli+'">🗑️</button></div>';
         row.addEventListener('click',function(e){if(e.target.closest('.groupActions'))return;openLevel({catIdx:levelPos.catIdx,subKey:'col_'+coli,subColKey:null});});
         body.appendChild(row);
-      });
-      hasContent=true;
+      });hasContent=true;
     }
-
     var directFilms=Object.values(db.films).filter(function(f){return f.catIdx===levelPos.catIdx&&!f.subKey&&!f.subColKey;}).filter(matchFilm);
     if(directFilms.length){
       body.innerHTML+='<div class="sectionLbl">🎬 Films</div>';
@@ -1068,61 +1097,77 @@ function renderLevelBody(){
           var contentDiv=document.createElement('div');contentDiv.style.width='100%';contentDiv.style.marginTop='8px';contentDiv.style.display='none';
           g.films.forEach(function(f){contentDiv.innerHTML+=filmItemHTML(f);});
           gb.addEventListener('click',function(){contentDiv.style.display=contentDiv.style.display==='none'?'block':'none';});
-          var wrap=document.createElement('div');wrap.appendChild(gb);wrap.appendChild(contentDiv);
-          body.appendChild(wrap);
-        }else if(g.films[0]){
-          var d=document.createElement('div');d.innerHTML=filmItemHTML(g.films[0]);body.appendChild(d.firstChild);
-        }
-      });
-      hasContent=true;
+          var wrap=document.createElement('div');wrap.appendChild(gb);wrap.appendChild(contentDiv);body.appendChild(wrap);
+        }else if(g.films[0]){var d=document.createElement('div');d.innerHTML=filmItemHTML(g.films[0]);body.appendChild(d.firstChild);}
+      });hasContent=true;
     }
-
     if(!hasContent)body.innerHTML='<div style="color:var(--text2);padding:30px;text-align:center;width:100%">Catégorie vide.</div>';
 
     body.querySelectorAll('.btnRenameSub').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();openRename('sub',levelPos.catIdx,parseInt(btn.getAttribute('data-si')),null);});});
-    body.querySelectorAll('.btnDelSub').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();var si=parseInt(btn.getAttribute('data-si'));if(!confirm('Supprimer ?'))return;cat.subCategories.splice(si,1);Object.values(db.films).forEach(function(f){if(f.catIdx===levelPos.catIdx&&f.subKey==='sub_'+si){f.subKey=null;f.subColKey=null;}});saveDB();renderLevelBody();});});
+    body.querySelectorAll('.btnDelSub').forEach(function(btn){btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      var si=parseInt(btn.getAttribute('data-si'));
+      var sub=cat.subCategories[si];
+      var subFilms=collectAllFilmsOfSub(sub);
+      var msg='Supprimer la sous-catégorie "'+sub.name+'"';
+      if(subFilms.length>0)msg+=' et ses '+subFilms.length+' film(s) ?';else msg+=' ?';
+      if(!confirm(msg))return;
+      subFilms.forEach(function(f){if(f)delete db.films[f.id];});
+      cat.subCategories.splice(si,1);
+      saveDB();renderLevelBody();
+    });});
     body.querySelectorAll('.btnRenameCol').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();openRename('col',levelPos.catIdx,null,parseInt(btn.getAttribute('data-coli')));});});
-    body.querySelectorAll('.btnDelCol').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();var coli=parseInt(btn.getAttribute('data-coli'));if(!confirm('Supprimer ?'))return;cat.collections.splice(coli,1);Object.values(db.films).forEach(function(f){if(f.catIdx===levelPos.catIdx&&f.subKey==='col_'+coli){f.subKey=null;}});saveDB();renderLevelBody();});});
+    body.querySelectorAll('.btnDelCol').forEach(function(btn){btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      var coli=parseInt(btn.getAttribute('data-coli'));
+      var coll=cat.collections[coli];
+      var collFilms=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);
+      var msg='Supprimer la collection "'+coll.name+'"';
+      if(collFilms.length>0)msg+=' et ses '+collFilms.length+' film(s) ?';else msg+=' ?';
+      if(!confirm(msg))return;
+      collFilms.forEach(function(f){if(f)delete db.films[f.id];});
+      cat.collections.splice(coli,1);
+      saveDB();renderLevelBody();
+    });});
 
   }else if(type==='sub'){
-    var sub=getSub();if(!sub){return;}ensureSub(sub);
-    var hasContent2=false;
-
+    var sub=getSub();if(!sub){return;}ensureSub(sub);var hasContent2=false;
+    var si=parseInt(levelPos.subKey.replace('sub_',''));
     if((sub.collections||[]).length){
       body.innerHTML+='<div class="sectionLbl">🎬 Collections</div>';
       sub.collections.forEach(function(coll,coli){
-        var collFilms=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);
-        var dvd=getDvdInfo(collFilms);
+        var collFilms=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);var dvd=getDvdInfo(collFilms);
         var row=document.createElement('div');row.className='groupRow colRow';
         row.innerHTML='<span class="groupName">🎬 '+coll.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameSubCol" data-coli="'+coli+'">✏️</button><button class="groupBtn btnDelSubCol" data-coli="'+coli+'">🗑️</button></div>';
         row.addEventListener('click',function(e){if(e.target.closest('.groupActions'))return;openLevel({catIdx:levelPos.catIdx,subKey:levelPos.subKey,subColKey:'subcol_'+coli});});
         body.appendChild(row);
-      });
-      hasContent2=true;
+      });hasContent2=true;
     }
-
-    var si=parseInt(levelPos.subKey.replace('sub_',''));
     var directFilms2=(sub.films||[]).map(function(id){return db.films[id];}).filter(matchFilm);
-    if(directFilms2.length){
-      body.innerHTML+='<div class="sectionLbl">🎬 Films</div>';
-      directFilms2.forEach(function(f){body.innerHTML+=filmItemHTML(f);});
-      hasContent2=true;
-    }
-
+    if(directFilms2.length){body.innerHTML+='<div class="sectionLbl">🎬 Films</div>';directFilms2.forEach(function(f){body.innerHTML+=filmItemHTML(f);});hasContent2=true;}
     if(!hasContent2)body.innerHTML='<div style="color:var(--text2);padding:30px;text-align:center;width:100%">Sous-catégorie vide.</div>';
 
     body.querySelectorAll('.btnRenameSubCol').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();openRename('subcol',levelPos.catIdx,si,parseInt(btn.getAttribute('data-coli')));});});
-    body.querySelectorAll('.btnDelSubCol').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();var coli=parseInt(btn.getAttribute('data-coli'));if(!confirm('Supprimer ?'))return;sub.collections.splice(coli,1);Object.values(db.films).forEach(function(f){if(f.catIdx===levelPos.catIdx&&f.subKey==='sub_'+si&&f.subColKey==='subcol_'+coli){f.subColKey=null;}});saveDB();renderLevelBody();});});
+    body.querySelectorAll('.btnDelSubCol').forEach(function(btn){btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      var coli=parseInt(btn.getAttribute('data-coli'));
+      var coll=sub.collections[coli];
+      var collFilms=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);
+      var msg='Supprimer la collection "'+coll.name+'"';
+      if(collFilms.length>0)msg+=' et ses '+collFilms.length+' film(s) ?';else msg+=' ?';
+      if(!confirm(msg))return;
+      collFilms.forEach(function(f){if(f)delete db.films[f.id];});
+      sub.collections.splice(coli,1);
+      saveDB();renderLevelBody();
+    });});
 
   }else if(type==='col'){
-    var coll2=levelPos.subColKey?getColInSub():getColInCat();
-    if(!coll2)return;
+    var coll2=levelPos.subColKey?getColInSub():getColInCat();if(!coll2)return;
     var films2=(coll2.films||[]).map(function(id){return db.films[id];}).filter(matchFilm);
-    if(!films2.length){body.innerHTML='<div style="color:var(--text2);padding:30px;text-align:center;width:100%">Collection vide.</div>';}
+    if(!films2.length)body.innerHTML='<div style="color:var(--text2);padding:30px;text-align:center;width:100%">Collection vide.</div>';
     else films2.forEach(function(f){body.innerHTML+=filmItemHTML(f);});
   }
 
-  // Events communs sur les films affichés
   body.querySelectorAll('.filmCheckbox').forEach(function(cb){cb.addEventListener('change',function(e){e.stopPropagation();if(cb.checked)selectedIds[cb.getAttribute('data-id')]=true;else delete selectedIds[cb.getAttribute('data-id')];updateSelBar();});if(selectedIds[cb.getAttribute('data-id')])cb.checked=true;});
   body.querySelectorAll('.filmItem').forEach(function(item){item.addEventListener('click',function(e){var id=item.getAttribute('data-id');if(selectMode){if(e.target.classList.contains('filmCheckbox'))return;if(selectedIds[id]){delete selectedIds[id];item.querySelector('.filmCheckbox').checked=false;}else{selectedIds[id]=true;item.querySelector('.filmCheckbox').checked=true;}item.classList.toggle('selected',!!selectedIds[id]);updateSelBar();}else{if(!e.target.classList.contains('filmCheckbox'))openFilmPage(id);}});});
 }
@@ -1178,28 +1223,27 @@ function confirmMove(){
     var f=db.films[id];var oldCat=f.catIdx;var oldSub=f.subKey;var oldSubCol=f.subColKey;
     if(oldCat!==null&&oldCat!==undefined&&db.categories[oldCat]){
       var oc=db.categories[oldCat];ensureCat(oc);
-      if(oldSub&&oldSub.startsWith('sub_')){
-        var si=parseInt(oldSub.replace('sub_',''));var sub=oc.subCategories[si];if(sub){ensureSub(sub);
-          if(oldSubCol&&oldSubCol.startsWith('subcol_')){var sci=parseInt(oldSubCol.replace('subcol_',''));if(sub.collections[sci])sub.collections[sci].films=(sub.collections[sci].films||[]).filter(function(x){return x!=id;});}
-          else sub.films=(sub.films||[]).filter(function(x){return x!=id;});}
-      }else if(oldSub&&oldSub.startsWith('col_')){var ci=parseInt(oldSub.replace('col_',''));if(oc.collections[ci])oc.collections[ci].films=(oc.collections[ci].films||[]).filter(function(x){return x!=id;});}
+      if(oldSub&&oldSub.startsWith('sub_')){var si=parseInt(oldSub.replace('sub_',''));var sub=oc.subCategories[si];if(sub){ensureSub(sub);if(oldSubCol&&oldSubCol.startsWith('subcol_')){var sci=parseInt(oldSubCol.replace('subcol_',''));if(sub.collections[sci])sub.collections[sci].films=(sub.collections[sci].films||[]).filter(function(x){return x!=id;});}else sub.films=(sub.films||[]).filter(function(x){return x!=id;});}}
+      else if(oldSub&&oldSub.startsWith('col_')){var ci=parseInt(oldSub.replace('col_',''));if(oc.collections[ci])oc.collections[ci].films=(oc.collections[ci].films||[]).filter(function(x){return x!=id;});}
       else oc.films=(oc.films||[]).filter(function(x){return x!=id;});
     }
     f.catIdx=pl.catIdx;f.subKey=pl.subKey||null;f.subColKey=pl.subColKey||null;
     if(pl.catIdx!==null&&pl.catIdx!==undefined){
       var nc=db.categories[pl.catIdx];ensureCat(nc);
-      if(pl.subKey&&pl.subKey.startsWith('sub_')){
-        var si2=parseInt(pl.subKey.replace('sub_',''));var sub2=nc.subCategories[si2];ensureSub(sub2);
-        if(pl.subColKey&&pl.subColKey.startsWith('subcol_')){var sci2=parseInt(pl.subColKey.replace('subcol_',''));if(!sub2.collections[sci2].films)sub2.collections[sci2].films=[];if(sub2.collections[sci2].films.indexOf(id)===-1)sub2.collections[sci2].films.push(id);}
-        else{if(sub2.films.indexOf(id)===-1)sub2.films.push(id);}
-      }else if(pl.subKey&&pl.subKey.startsWith('col_')){var ci2=parseInt(pl.subKey.replace('col_',''));if(!nc.collections[ci2].films)nc.collections[ci2].films=[];if(nc.collections[ci2].films.indexOf(id)===-1)nc.collections[ci2].films.push(id);}
+      if(pl.subKey&&pl.subKey.startsWith('sub_')){var si2=parseInt(pl.subKey.replace('sub_',''));var sub2=nc.subCategories[si2];ensureSub(sub2);if(pl.subColKey&&pl.subColKey.startsWith('subcol_')){var sci2=parseInt(pl.subColKey.replace('subcol_',''));if(!sub2.collections[sci2].films)sub2.collections[sci2].films=[];if(sub2.collections[sci2].films.indexOf(id)===-1)sub2.collections[sci2].films.push(id);}else{if(sub2.films.indexOf(id)===-1)sub2.films.push(id);}}
+      else if(pl.subKey&&pl.subKey.startsWith('col_')){var ci2=parseInt(pl.subKey.replace('col_',''));if(!nc.collections[ci2].films)nc.collections[ci2].films=[];if(nc.collections[ci2].films.indexOf(id)===-1)nc.collections[ci2].films.push(id);}
       else{if(nc.films.indexOf(id)===-1)nc.films.push(id);}
     }
   });
   saveDB();closeModal('modalMove');toggleSelectMode();toast('✅ Déplacés !');
 }
 
-function deleteSelected(){var ids=Object.keys(selectedIds);if(!ids.length){toast('Sélectionnez des films');return;}if(!confirm('Supprimer '+ids.length+' film(s) ?'))return;ids.forEach(function(id){if(!db.films[id])return;var f=db.films[id];if(f.catIdx!==null&&f.catIdx!==undefined&&db.categories[f.catIdx]){var cat=db.categories[f.catIdx];ensureCat(cat);if(f.subKey&&f.subKey.startsWith('sub_')){var si=parseInt(f.subKey.replace('sub_',''));var sub=cat.subCategories[si];if(sub){ensureSub(sub);if(f.subColKey&&f.subColKey.startsWith('subcol_')){var sci=parseInt(f.subColKey.replace('subcol_',''));if(sub.collections[sci])sub.collections[sci].films=(sub.collections[sci].films||[]).filter(function(x){return x!=id;});}else sub.films=(sub.films||[]).filter(function(x){return x!=id;});}}else if(f.subKey&&f.subKey.startsWith('col_')){var ci=parseInt(f.subKey.replace('col_',''));if(cat.collections[ci])cat.collections[ci].films=(cat.collections[ci].films||[]).filter(function(x){return x!=id;});}else cat.films=(cat.films||[]).filter(function(x){return x!=id;});}delete db.films[id];});saveDB();toggleSelectMode();toast('🗑️ Supprimés !');}
+function deleteSelected(){
+  var ids=Object.keys(selectedIds);if(!ids.length){toast('Sélectionnez des films');return;}
+  if(!confirm('Supprimer '+ids.length+' film(s) ?'))return;
+  ids.forEach(function(id){removeFilmFromDB(id);});
+  saveDB();toggleSelectMode();toast('🗑️ Supprimés !');
+}
 
 // ===== FICHE FILM =====
 var currentNote=0,currentStatus='voir',currentDVD=false;
@@ -1219,6 +1263,8 @@ function renderFilmPage(f,readOnly){
   document.getElementById('filmReadonlyBanner').style.display=readOnly?'flex':'none';
   document.getElementById('filmEditSection').style.opacity=readOnly?'0.4':'1';
   document.getElementById('filmEditSection').style.pointerEvents=readOnly?'none':'auto';
+  // Cacher le bouton supprimer en mode lecture seule
+  document.getElementById('btnDeleteFilm').style.display=readOnly?'none':'block';
   var hasResume=!!(f.resume&&f.resume.trim());
   document.getElementById('resumeSec').style.display=hasResume?'':'none';
   document.getElementById('resumeBox').textContent=f.resume||'';document.getElementById('resumeBox').style.display='none';
@@ -1255,16 +1301,11 @@ function renderFilmSubSelect(f){
   renderFilmSubColSelect(f);
 }
 function renderFilmSubColSelect(f){
-  var catSel=document.getElementById('filmCatSelect');
-  var subSel=document.getElementById('filmSubSelect');
-  var subColSel=document.getElementById('filmSubColSelect');
+  var catSel=document.getElementById('filmCatSelect');var subSel=document.getElementById('filmSubSelect');var subColSel=document.getElementById('filmSubColSelect');
   var catIdx=catSel.value!==''?parseInt(catSel.value):null;
   if(catIdx===null||!subSel.value||!subSel.value.startsWith('sub_')){subColSel.style.display='none';return;}
-  var si=parseInt(subSel.value.replace('sub_',''));
-  var cat=db.categories[catIdx];ensureCat(cat);
-  var sub=cat.subCategories[si];if(!sub){subColSel.style.display='none';return;}
-  ensureSub(sub);
-  if(!sub.collections||!sub.collections.length){subColSel.style.display='none';return;}
+  var si=parseInt(subSel.value.replace('sub_',''));var cat=db.categories[catIdx];ensureCat(cat);var sub=cat.subCategories[si];if(!sub){subColSel.style.display='none';return;}
+  ensureSub(sub);if(!sub.collections||!sub.collections.length){subColSel.style.display='none';return;}
   subColSel.innerHTML='<option value="">— Directement dans la sous-catégorie —</option>';
   (sub.collections||[]).forEach(function(c,i){var sel2=f&&f.subColKey==='subcol_'+i&&f.subKey==='sub_'+si;subColSel.innerHTML+='<option value="subcol_'+i+'" '+(sel2?'selected':'')+'>🎬 '+c.name+'</option>';});
   subColSel.style.display='';
@@ -1278,19 +1319,12 @@ function updateFilmCat(){
     else if(oldSub&&oldSub.startsWith('col_')){var ci=parseInt(oldSub.replace('col_',''));if(oc.collections[ci])oc.collections[ci].films=(oc.collections[ci].films||[]).filter(function(x){return x!=currentFilmId;});}
     else oc.films=(oc.films||[]).filter(function(x){return x!=currentFilmId;});
   }
-  var catVal=document.getElementById('filmCatSelect').value;
-  var subVal=document.getElementById('filmSubSelect').value;
-  var subColVal=document.getElementById('filmSubColSelect').value;
-  f.catIdx=catVal!==''?parseInt(catVal):null;
-  f.subKey=subVal||null;
-  f.subColKey=(subVal&&subVal.startsWith('sub_')&&subColVal)?subColVal:null;
+  var catVal=document.getElementById('filmCatSelect').value;var subVal=document.getElementById('filmSubSelect').value;var subColVal=document.getElementById('filmSubColSelect').value;
+  f.catIdx=catVal!==''?parseInt(catVal):null;f.subKey=subVal||null;f.subColKey=(subVal&&subVal.startsWith('sub_')&&subColVal)?subColVal:null;
   if(f.catIdx!==null&&db.categories[f.catIdx]){
     var nc=db.categories[f.catIdx];ensureCat(nc);
-    if(f.subKey&&f.subKey.startsWith('sub_')){
-      var si2=parseInt(f.subKey.replace('sub_',''));var sub2=nc.subCategories[si2];ensureSub(sub2);
-      if(f.subColKey&&f.subColKey.startsWith('subcol_')){var sci2=parseInt(f.subColKey.replace('subcol_',''));if(!sub2.collections[sci2].films)sub2.collections[sci2].films=[];if(sub2.collections[sci2].films.indexOf(currentFilmId)===-1)sub2.collections[sci2].films.push(currentFilmId);}
-      else{if(sub2.films.indexOf(currentFilmId)===-1)sub2.films.push(currentFilmId);}
-    }else if(f.subKey&&f.subKey.startsWith('col_')){var ci2=parseInt(f.subKey.replace('col_',''));if(!nc.collections[ci2].films)nc.collections[ci2].films=[];if(nc.collections[ci2].films.indexOf(currentFilmId)===-1)nc.collections[ci2].films.push(currentFilmId);}
+    if(f.subKey&&f.subKey.startsWith('sub_')){var si2=parseInt(f.subKey.replace('sub_',''));var sub2=nc.subCategories[si2];ensureSub(sub2);if(f.subColKey&&f.subColKey.startsWith('subcol_')){var sci2=parseInt(f.subColKey.replace('subcol_',''));if(!sub2.collections[sci2].films)sub2.collections[sci2].films=[];if(sub2.collections[sci2].films.indexOf(currentFilmId)===-1)sub2.collections[sci2].films.push(currentFilmId);}else{if(sub2.films.indexOf(currentFilmId)===-1)sub2.films.push(currentFilmId);}}
+    else if(f.subKey&&f.subKey.startsWith('col_')){var ci2=parseInt(f.subKey.replace('col_',''));if(!nc.collections[ci2].films)nc.collections[ci2].films=[];if(nc.collections[ci2].films.indexOf(currentFilmId)===-1)nc.collections[ci2].films.push(currentFilmId);}
     else{if(nc.films.indexOf(currentFilmId)===-1)nc.films.push(currentFilmId);}
   }
   saveDB();toast('📂 Catégorie mise à jour !');
@@ -1341,10 +1375,9 @@ function loadSimilar(f){
   }).catch(function(){scr.innerHTML='<div style="color:var(--text2);font-size:.83rem">Erreur.</div>';});
 }
 
-// ===== AJOUT RAPIDE (depuis fiche film - films similaires) =====
+// ===== AJOUT RAPIDE =====
 function openQA(id,title,posterPath,year,type,resume){
   quickFilmData={id:id,title:title,posterPath:posterPath,year:year,type:type,resume:resume};
-  // Ajout direct sans catégorie (l'utilisateur pourra catégoriser depuis la fiche du film ensuite)
   var poster=posterPath?IMG+posterPath:'';
   var filmsToAdd=[{id:id,title:title,poster:poster,year:year,type:type,resume:resume,future:false,seasons:0}];
   function doAdd(flist){var added=0;flist.forEach(function(f){if(addFilmToDB(f,null,null,null,false))added++;});saveDB();if(currentFilmId&&db.films[currentFilmId])loadSimilar(db.films[currentFilmId]);toast(added>0?'✅ '+added+' ajouté(s) !':'Déjà dans la collection');}
@@ -1376,7 +1409,7 @@ function importDB(input){var file=input.files[0];if(!file)return;var r=new FileR
 try{
   firebase.initializeApp({apiKey:"AIzaSyAl7bDvJABFxe2LQWovS7Qx-IssxMbXFKo",authDomain:"cinetracker-73ed5.firebaseapp.com",projectId:"cinetracker-73ed5",storageBucket:"cinetracker-73ed5.firebasestorage.app",messagingSenderId:"334659507000",appId:"1:334659507000:web:b56549a1cb91da359927cd"});
   DB_DOC=firebase.firestore().collection('users').doc('main');
-  DB_DOC.get().then(function(snap){if(snap.exists){db=snap.data();localStorage.setItem('ct',JSON.stringify(db));var active=document.querySelector('.page.active');if(active&&active.id==='pageMain')renderStats();if(active&&active.id==='pageCollection')renderCollection();if(active&&active.id==='pageLevel')renderLevelPage();toast('☁️ Synchronisé !');}});
+  DB_DOC.get().then(function(snap){if(snap.exists){db=snap.data();purgeOrphanFilms();localStorage.setItem('ct',JSON.stringify(db));var active=document.querySelector('.page.active');if(active&&active.id==='pageMain')renderStats();if(active&&active.id==='pageCollection')renderCollection();if(active&&active.id==='pageLevel')renderLevelPage();toast('☁️ Synchronisé !');}});
   console.log('Firebase OK');
 }catch(e){console.log('Firebase:',e);}
 </script>
