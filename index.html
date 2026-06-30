@@ -1083,8 +1083,7 @@ function renderLevelBody(){
         var collFilms=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);var dvd=getDvdInfo(collFilms);
         var row=document.createElement('div');row.className='groupRow colRow';
         row.innerHTML='<span class="groupName">🎬 '+coll.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameCol" data-coli="'+coli+'">✏️</button><button class="groupBtn btnDelCol" data-coli="'+coli+'">🗑️</button></div>';
-        row.addEventListener('click',function(e){if(e.target.closest('.groupActions'))return;openLevel({catIdx:levelPos.catIdx,subKey:'col_'+coli,subColKey:null});});
-        body.appendChild(row);
+        (function(ci2){row.addEventListener('click',function(e){if(e.target.closest('.groupActions'))return;openLevel({catIdx:levelPos.catIdx,subKey:'col_'+ci2,subColKey:null});});body.appendChild(row);})(coli);
       });hasContent=true;
     }
     var directFilms=Object.values(db.films).filter(function(f){return f.catIdx===levelPos.catIdx&&!f.subKey&&!f.subColKey;}).filter(matchFilm);
