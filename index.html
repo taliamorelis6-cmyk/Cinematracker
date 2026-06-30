@@ -1135,7 +1135,11 @@ function renderLevelBody(){
       });hasContent2=true;
     }
     var directFilms2=(sub.films||[]).map(function(id){return db.films[id];}).filter(matchFilm);
-    if(directFilms2.length){addLbl('🎬 Films');directFilms2.forEach(function(f){body.innerHTML+=filmItemHTML(f);});hasContent2=true;}
+    if(directFilms2.length){
+      addLbl('🎬 Films');
+      directFilms2.forEach(function(f){var d=document.createElement('div');d.innerHTML=filmItemHTML(f);body.appendChild(d.firstChild);});
+      hasContent2=true;
+    }
     if(!hasContent2){var empty2=document.createElement('div');empty2.style.cssText='color:var(--text2);padding:30px;text-align:center;width:100%';empty2.textContent='Sous-catégorie vide.';body.appendChild(empty2);}
 
     body.querySelectorAll('.btnRenameSubCol').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();openRename('subcol',levelPos.catIdx,si,parseInt(btn.getAttribute('data-coli')));});});
