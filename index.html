@@ -7,7 +7,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CinéTracker">
-<meta name="theme-color" content="#0d0010">
+<meta name="theme-color" content="#8A5730">
+<link rel="manifest" href="manifest.json?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
+<link rel="apple-touch-icon" href="icon-192.png?v=2">
 <style>
 :root{--bg:#0d0010;--v2:#5a0080;--or:#c45c00;--or2:#ff8c00;--rose:#ff6fa8;--blue:#1a6fff;--text:#f5e6ff;--text2:#c9a0e8;--card:rgba(45,0,87,0.55);--glass:rgba(90,0,128,0.25);--border:rgba(255,140,0,0.25);}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -32,6 +35,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #topBar{width:100%;display:flex;align-items:center;gap:12px;padding:16px 20px;background:rgba(13,0,16,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
 #btnRoulette,#btnDVD{background:linear-gradient(135deg,var(--v2),var(--or));border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:1.3rem;cursor:pointer;flex-shrink:0;}
 #btnDVD{background:linear-gradient(135deg,var(--or),var(--rose));}
+#btnTheme{background:linear-gradient(135deg,var(--rose),var(--v2));border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:1.3rem;cursor:pointer;flex-shrink:0;}
 #searchWrap{flex:1;position:relative;}
 #searchInput{width:100%;padding:10px 40px;border-radius:24px;border:1px solid var(--border);background:var(--glass);color:var(--text);font-size:1rem;outline:none;}
 #searchInput::placeholder{color:var(--text2);}
@@ -71,6 +75,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #colBody{width:100%;padding:12px 16px;padding-bottom:80px;}
 
 .catTopRow{display:flex;align-items:center;gap:8px;padding:13px 14px;cursor:pointer;background:linear-gradient(90deg,var(--v2),var(--or));border-radius:14px;margin-bottom:10px;border:1px solid var(--border);}
+.catIconWrap{position:relative;width:38px;height:56px;flex-shrink:0;margin-right:2px;}
+.catIconMain{position:absolute;left:0;top:0;width:38px;height:56px;object-fit:cover;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.35);}
+.catIconPlaceholder{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);font-size:1.1rem;}
+.catIconStack{position:absolute;border-radius:8px;background:rgba(255,255,255,.35);width:32px;height:48px;}
+.catIconStack.s1{left:6px;top:4px;transform:rotate(6deg);}
+.catIconStack.s2{left:-4px;top:2px;transform:rotate(-5deg);}
 .catTopRow .catName{flex:1;font-weight:700;font-size:.97rem;}
 .catTopRow .catDvdCount{font-size:.75rem;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px;}
 .catTopRow .catActions{display:flex;gap:4px;}
@@ -168,9 +178,28 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #dvdHeader h2{flex:1;font-size:1.1rem;}#dvdCount{font-size:.83rem;color:var(--or2);}
 #dvdShelf{display:flex;flex-wrap:wrap;gap:10px;padding:14px;}
 .dvdCase{width:68px;cursor:pointer;transition:.2s;}.dvdCase:hover{transform:scale(1.05) rotate(-2deg);}
-.dvdCase img{width:68px;height:102px;object-fit:cover;border-radius:6px;border:2px solid var(--or);box-shadow:3px 3px 12px rgba(0,0,0,.5);}
-.dvdCase p{font-size:.58rem;text-align:center;margin-top:3px;color:var(--text2);line-height:1.2;}
+.dvdCase img{width:68px;height:102px;object-fit:cover;border-radius:6px;border:2px solid var(--or);box-shadow:4px 4px 0 var(--v2),4px 4px 10px rgba(0,0,0,.35);}
+.dvdCase p{font-size:.58rem;text-align:center;margin-top:5px;color:var(--text2);line-height:1.2;}
 #rouletteBox{width:90%;max-width:400px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:22px;text-align:center;}
+#pageTheme{align-items:center;justify-content:center;}
+#themeBox{width:90%;max-width:420px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:22px;text-align:center;max-height:85vh;overflow-y:auto;}
+#themeBox h2{font-size:1.2rem;margin-bottom:10px;}
+.themeSubLbl{font-size:.85rem;color:var(--text2);text-align:left;margin:14px 0 8px;font-weight:600;}
+.themeHint{font-size:.75rem;color:var(--text2);text-align:left;margin:0 0 8px;}
+#themeSwatchGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px;}
+.themeSwatch{border-radius:14px;padding:8px;cursor:pointer;border:2px solid transparent;background:var(--glass);}
+.themeSwatch.active{border-color:var(--or);}
+.themeSwatchColors{display:flex;height:28px;border-radius:8px;overflow:hidden;margin-bottom:6px;}
+.themeSwatchColors span{flex:1;}
+.themeSwatch .themeSwatchName{font-size:.68rem;color:var(--text);}
+#btnShuffleTheme{width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--glass);color:var(--text);cursor:pointer;margin-top:10px;font-size:.85rem;}
+.mixRow{display:flex;align-items:center;gap:10px;margin-bottom:8px;text-align:left;}
+.mixRow span{width:52px;font-size:.8rem;color:var(--text2);flex-shrink:0;}
+.mixOptions{display:flex;gap:6px;flex-wrap:wrap;}
+.mixSwatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.mixSwatch.active{border-color:var(--text);}
+#btnApplyMix{width:100%;padding:10px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--or),var(--v2));color:#fff;cursor:pointer;margin:10px 0;font-size:.85rem;}
+#btnThemeBack{width:100%;padding:9px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;}
 #rouletteBox h2{font-size:1.2rem;margin-bottom:14px;}
 #rouletteResult{width:140px;height:210px;margin:0 auto 14px;border-radius:11px;object-fit:cover;border:3px solid var(--or);display:none;}
 #rouletteTitle{font-size:1.05rem;font-weight:700;margin-bottom:7px;min-height:1.4em;}
@@ -262,6 +291,7 @@ select option{background:#1a003a;}
       <div id="searchResults"></div>
     </div>
     <button id="btnDVD">📀</button>
+    <button id="btnTheme">🎨</button>
   </div>
   <div id="mainContent">
     <div id="statsBar"></div>
@@ -383,6 +413,23 @@ select option{background:#1a003a;}
     <select id="catSelect"></select>
     <button id="btnSpin">🎬 Lancer !</button><br>
     <button id="btnRouBack">← Retour</button>
+  </div>
+</div>
+
+<!-- PAGE THEME / PERSONNALISATION -->
+<div id="pageTheme" class="page">
+  <div id="themeBox">
+    <h2>🎨 Personnalisation</h2>
+    <p class="themeSubLbl">Palettes</p>
+    <div id="themeSwatchGrid"></div>
+    <button id="btnShuffleTheme">🔀 Mélanger la répartition</button>
+    <p class="themeSubLbl">Créer mon propre mélange</p>
+    <p class="themeHint">Choisis une couleur pour chaque rôle, depuis n'importe quelle palette.</p>
+    <div class="mixRow"><span>Fond</span><div id="mixBgOptions" class="mixOptions"></div></div>
+    <div class="mixRow"><span>Texte</span><div id="mixTextOptions" class="mixOptions"></div></div>
+    <div class="mixRow"><span>Accent</span><div id="mixAccentOptions" class="mixOptions"></div></div>
+    <button id="btnApplyMix">Appliquer mon mélange</button>
+    <button id="btnThemeBack">← Retour</button>
   </div>
 </div>
 
@@ -530,6 +577,105 @@ function purgeOrphanFilms(){
 loadDB();
 purgeOrphanFilms();
 
+// ===== THEME / PALETTES =====
+var PALETTES=[
+  {id:'dark',name:'Original (sombre)',swatches:['#0d0010','#5a0080','#c45c00'],vars:{bg:'#0d0010',card:'rgba(45,0,87,0.55)',glass:'rgba(90,0,128,0.25)',border:'rgba(255,140,0,0.25)',text:'#f5e6ff',text2:'#c9a0e8',v2:'#5a0080',or:'#c45c00',or2:'#ff8c00',rose:'#ff6fa8',blue:'#1a6fff'}},
+  {id:'rose',name:'Rosé vintage',swatches:['#FDECEF','#8A5730','#E8879A'],base:{bg:'#FDECEF',main:'#8A5730',accent:'#E8879A'}},
+  {id:'orange',name:'Terracotta doux',swatches:['#FCEFE3','#8A4A1E','#F0B36B'],base:{bg:'#FCEFE3',main:'#8A4A1E',accent:'#F0B36B'}},
+  {id:'violet',name:'Lilas poudré',swatches:['#F3EDF7','#5C3E70','#C9A8DE'],base:{bg:'#F3EDF7',main:'#5C3E70',accent:'#C9A8DE'}},
+  {id:'bleu',name:'Ciel glacé',swatches:['#EAF2F8','#2E4E66','#8FC0DB'],base:{bg:'#EAF2F8',main:'#2E4E66',accent:'#8FC0DB'}}
+];
+function mixHex(hex,pct,towards){ // lighten/darken helper, towards 'white' or 'black'
+  var c=hex.replace('#',''),r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
+  var t=towards==='white'?255:0;
+  r=Math.round(r+(t-r)*pct);g=Math.round(g+(t-g)*pct);b=Math.round(b+(t-b)*pct);
+  return '#'+[r,g,b].map(function(v){return Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0');}).join('');
+}
+function varsFromBase(base){
+  return {
+    bg:base.bg,
+    card:'#FFFFFF',
+    glass:mixHex(base.bg,0.4,'white'),
+    border:mixHex(base.accent,0.55,'white'),
+    text:base.main,
+    text2:mixHex(base.main,0.45,'white'),
+    v2:base.main,
+    or:base.accent,
+    or2:mixHex(base.accent,0.25,'white'),
+    rose:base.accent,
+    blue:base.main
+  };
+}
+function getPaletteVars(p,roles){
+  if(p.vars)return p.vars; // dark original, fixed
+  var base=p.base;
+  var mapped=base;
+  if(roles){ // roles = {bg:'bg'|'main'|'accent', text:'...', accent:'...'} reassigns which physical color plays which role
+    mapped={bg:base[roles.bg],main:base[roles.text],accent:base[roles.accent]};
+  }
+  return varsFromBase(mapped);
+}
+function applyTheme(){
+  db.theme=db.theme||{paletteId:'rose',roles:null,custom:null};
+  var vars;
+  if(db.theme.custom){vars=varsFromBase(db.theme.custom);}
+  else{
+    var p=PALETTES.find(function(x){return x.id===db.theme.paletteId;})||PALETTES[1];
+    vars=getPaletteVars(p,db.theme.roles);
+  }
+  var root=document.documentElement.style;
+  Object.keys(vars).forEach(function(k){root.setProperty('--'+k,vars[k]);});
+}
+function setPalette(id){db.theme={paletteId:id,roles:null,custom:null};saveDB();applyTheme();renderThemePage();}
+function shuffleThemeRoles(){
+  var p=PALETTES.find(function(x){return x.id===(db.theme&&db.theme.paletteId);});
+  if(!p||!p.base)return;
+  var roleNames=['bg','text','accent'],colorKeys=['bg','main','accent'];
+  var shuffled=colorKeys.slice().sort(function(){return Math.random()-0.5;});
+  db.theme.roles={};roleNames.forEach(function(r,i){db.theme.roles[r]=shuffled[i];});
+  db.theme.custom=null;
+  saveDB();applyTheme();renderThemePage();
+}
+function setCustomMix(bg,text,accent){db.theme={paletteId:null,roles:null,custom:{bg:bg,main:text,accent:accent}};saveDB();applyTheme();renderThemePage();}
+applyTheme();
+var mixSelection={bg:null,text:null,accent:null};
+function renderThemePage(){
+  var grid=document.getElementById('themeSwatchGrid');
+  grid.innerHTML='';
+  PALETTES.forEach(function(p){
+    var isActive=db.theme&&!db.theme.custom&&db.theme.paletteId===p.id;
+    var el=document.createElement('div');
+    el.className='themeSwatch'+(isActive?' active':'');
+    el.innerHTML='<div class="themeSwatchColors">'+p.swatches.map(function(c){return '<span style="background:'+c+'"></span>';}).join('')+'</div><div class="themeSwatchName">'+p.name+'</div>';
+    el.addEventListener('click',function(){setPalette(p.id);});
+    grid.appendChild(el);
+  });
+  // mixer: collect all named colors across palettes (skip dark original)
+  var allColors=[];
+  PALETTES.forEach(function(p){
+    if(!p.base)return;
+    allColors.push({hex:p.base.bg,label:p.name+' - fond'});
+    allColors.push({hex:p.base.main,label:p.name+' - texte'});
+    allColors.push({hex:p.base.accent,label:p.name+' - accent'});
+  });
+  ['Bg','Text','Accent'].forEach(function(role){
+    var wrap=document.getElementById('mix'+role+'Options');
+    wrap.innerHTML='';
+    allColors.forEach(function(c){
+      var sw=document.createElement('div');
+      sw.className='mixSwatch';
+      sw.style.background=c.hex;
+      sw.title=c.label;
+      sw.addEventListener('click',function(){
+        mixSelection[role.toLowerCase()]=c.hex;
+        wrap.querySelectorAll('.mixSwatch').forEach(function(s){s.classList.remove('active');});
+        sw.classList.add('active');
+      });
+      wrap.appendChild(sw);
+    });
+  });
+}
+
 function ensureCat(cat){if(!cat.films)cat.films=[];if(!cat.subCategories)cat.subCategories=[];if(!cat.collections)cat.collections=[];}
 function ensureSub(sub){if(!sub.films)sub.films=[];if(!sub.collections)sub.collections=[];}
 
@@ -563,13 +709,14 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');p.style.display='none';});
   var el=document.getElementById(id);el.classList.add('active');
   if(id==='pageFilm')el.style.display='block';
-  else if(id==='pageHome'||id==='pageRoulette'){el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';}
+  else if(id==='pageHome'||id==='pageRoulette'||id==='pageTheme'){el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';}
   else{el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='stretch';}
   if(id==='pageMain')renderStats();
   if(id==='pageCollection'){if(selectMode)toggleSelectMode();renderCollection();}
   if(id==='pageLevel')renderLevelPage();
   if(id==='pageDVD')renderDVD();
   if(id==='pageRoulette')renderRoulette();
+  if(id==='pageTheme')renderThemePage();
 }
 function enterApp(){navStack=['pageHome','pageMain'];showPage('pageMain');}
 
@@ -598,6 +745,13 @@ document.getElementById('selBtnCancel').addEventListener('click',function(){togg
 document.getElementById('btnSpin').addEventListener('click',function(){spinRoulette();});
 document.getElementById('rOptRandom').addEventListener('click',function(){setRouMode('random',this);});
 document.getElementById('rOptCat').addEventListener('click',function(){setRouMode('cat',this);});
+document.getElementById('btnTheme').addEventListener('click',function(){navigate('pageTheme');});
+document.getElementById('btnThemeBack').addEventListener('click',function(){navigateBack();});
+document.getElementById('btnShuffleTheme').addEventListener('click',function(){shuffleThemeRoles();});
+document.getElementById('btnApplyMix').addEventListener('click',function(){
+  if(!mixSelection.bg||!mixSelection.text||!mixSelection.accent){toast('Choisis une couleur pour chaque rôle !');return;}
+  setCustomMix(mixSelection.bg,mixSelection.text,mixSelection.accent);
+});
 document.getElementById('btnConfirmAdd').addEventListener('click',function(){confirmAdd();});
 document.getElementById('btnCancelAdd').addEventListener('click',function(){closeModal('modalAdd');});
 document.getElementById('btnConfirmManuel').addEventListener('click',function(){confirmManuel();});
@@ -871,7 +1025,8 @@ function getPlacement(catSelId){
 
 function addFilmToDB(f,catIdx,subKey,subColKey,dvd){
   if(db.films[f.id])return false;
-  db.films[f.id]={id:f.id,title:f.title,poster:f.poster,year:f.year,type:f.type,dvd:!!dvd,status:'voir',note:0,comment:'',resume:f.resume||'',seasons:f.seasons||0,seasonsChecked:[],catIdx:catIdx,subKey:subKey||null,subColKey:subColKey||null,future:!!f.future};
+  db.filmSeq=(db.filmSeq||0)+1;
+  db.films[f.id]={id:f.id,title:f.title,poster:f.poster,year:f.year,type:f.type,dvd:!!dvd,status:'voir',note:0,comment:'',resume:f.resume||'',seasons:f.seasons||0,seasonsChecked:[],catIdx:catIdx,subKey:subKey||null,subColKey:subColKey||null,future:!!f.future,seq:db.filmSeq};
   if(catIdx!==null&&catIdx!==undefined){
     var cat=db.categories[catIdx];ensureCat(cat);
     if(subKey&&subKey.startsWith('sub_')){
@@ -921,12 +1076,20 @@ function renderCollection(){
     ensureCat(cat);
     var allCatFilms=collectAllFilmsOfCategory(cat);
     var dvdInfo=getDvdInfo(allCatFilms);
+    var icon=getCatIcon(cat);
+    var stackCount=Math.min(allCatFilms.length-1,2);
+    var stackHtml='';for(var s=1;s<=stackCount;s++){stackHtml+='<div class="catIconStack s'+s+'"></div>';}
+    var iconHtml='<div class="catIconWrap">'+stackHtml+
+      (icon?'<img class="catIconMain" src="'+icon+'">':'<div class="catIconMain catIconPlaceholder">🎬</div>')+
+      '</div>';
     var row=document.createElement('div');row.className='catTopRow';
-    row.innerHTML='<span class="catName">📂 '+cat.name+'</span>'+(dvdInfo?'<span class="catDvdCount">'+dvdInfo+'</span>':'')+'<div class="catActions"><button class="catBtn btnRenameTop" data-ci="'+ci+'">✏️</button><button class="catBtn btnDelCatTop" data-ci="'+ci+'">🗑️</button></div>';
+    row.innerHTML=iconHtml+'<span class="catName">'+cat.name+'</span>'+(dvdInfo?'<span class="catDvdCount">'+dvdInfo+'</span>':'')+'<div class="catActions"><button class="catBtn btnCatIcon" data-ci="'+ci+'">🖼️</button>'+(cat.customImg?'<button class="catBtn btnCatIconRevert" data-ci="'+ci+'">↩️</button>':'')+'<button class="catBtn btnRenameTop" data-ci="'+ci+'">✏️</button><button class="catBtn btnDelCatTop" data-ci="'+ci+'">🗑️</button></div>';
     (function(idx){row.addEventListener('click',function(e){if(e.target.closest('.catActions'))return;openLevel({catIdx:idx,subKey:null,subColKey:null});});})(ci);
     body.appendChild(row);
   });
 
+  body.querySelectorAll('.btnCatIcon').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();setCustomImgPrompt(db.categories[parseInt(btn.getAttribute('data-ci'))]);});});
+  body.querySelectorAll('.btnCatIconRevert').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();revertCustomImg(db.categories[parseInt(btn.getAttribute('data-ci'))]);});});
   body.querySelectorAll('.btnRenameTop').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();openRename('cat',parseInt(btn.getAttribute('data-ci')),null,null);});});
   body.querySelectorAll('.btnDelCatTop').forEach(function(btn){btn.addEventListener('click',function(e){
     e.stopPropagation();
@@ -942,6 +1105,28 @@ function renderCollection(){
     saveDB();renderCollection();
   });});
 }
+
+// ===== ICONES AUTO (dernier/premier film ajouté) =====
+function lastAddedFilm(films){if(!films||!films.length)return null;return films.slice().sort(function(a,b){return (b.seq||0)-(a.seq||0);})[0];}
+function firstAddedFilm(films){if(!films||!films.length)return null;return films.slice().sort(function(a,b){return (a.seq||0)-(b.seq||0);})[0];}
+function getCatIcon(cat){ensureCat(cat);if(cat.customImg)return cat.customImg;var f=lastAddedFilm(collectAllFilmsOfCategory(cat));return f?f.poster:null;}
+function getSubIcon(sub){ensureSub(sub);if(sub.customImg)return sub.customImg;var films=(sub.films||[]).map(function(id){return db.films[id];}).filter(Boolean);(sub.collections||[]).forEach(function(c){films=films.concat((c.films||[]).map(function(id){return db.films[id];}).filter(Boolean));});var f=lastAddedFilm(films);return f?f.poster:null;}
+function getCollIcon(coll){var films=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);var f=firstAddedFilm(films);return f?f.poster:null;}
+function setCustomImgPrompt(target){
+  var inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.addEventListener('change',function(){
+    var file=inp.files[0];if(!file)return;
+    if(!firebase.storage){toast('⚠️ Storage non disponible');return;}
+    var ref=firebase.storage().ref().child('icons/'+Date.now()+'_'+file.name);
+    toast('⏳ Envoi de l\'image...');
+    ref.put(file).then(function(){return ref.getDownloadURL();}).then(function(url){
+      target.customImg=url;saveDB();toast('🖼️ Icône mise à jour !');
+      if(document.querySelector('.page.active')){var a=document.querySelector('.page.active').id;if(a==='pageCollection')renderCollection();if(a==='pageLevel')renderLevelPage();}
+    }).catch(function(e){toast('❌ Échec de l\'envoi');});
+  });
+  inp.click();
+}
+function revertCustomImg(target){delete target.customImg;saveDB();var a=document.querySelector('.page.active');if(a){if(a.id==='pageCollection')renderCollection();if(a.id==='pageLevel')renderLevelPage();}toast('↩️ Icône remise en automatique');}
 
 function collectAllFilmsOfCategory(cat){
   ensureCat(cat);
@@ -1388,10 +1573,21 @@ function openQA(id,title,posterPath,year,type,resume){
 }
 
 // ===== DVD =====
-function renderDVD(){var shelf=document.getElementById('dvdShelf');var dvds=Object.values(db.films).filter(function(f){return f.dvd;});document.getElementById('dvdCount').textContent=dvds.length+' DVD(s)';shelf.innerHTML='';if(!dvds.length){shelf.innerHTML='<div style="color:var(--text2);padding:38px;text-align:center;width:100%">Aucun DVD.</div>';return;}dvds.forEach(function(f){var c=document.createElement('div');c.className='dvdCase';c.innerHTML=(f.poster?'<img src="'+f.poster+'">':`<div style="width:68px;height:102px;background:var(--glass);border-radius:6px;display:flex;align-items:center;justify-content:center">📀</div>`)+'<p>'+f.title+'</p>';c.addEventListener('click',function(){openFilmPage(f.id);});shelf.appendChild(c);});}
+function smartOrderFilms(films){
+  return films.slice().sort(function(a,b){
+    var ca=a.catIdx===null||a.catIdx===undefined?999:a.catIdx,cb=b.catIdx===null||b.catIdx===undefined?999:b.catIdx;
+    if(ca!==cb)return ca-cb;
+    var sa=a.subKey||'',sb=b.subKey||'';
+    if(sa!==sb)return sa.localeCompare(sb);
+    var sca=a.subColKey||'',scb=b.subColKey||'';
+    if(sca!==scb)return sca.localeCompare(scb);
+    return (a.seq||0)-(b.seq||0);
+  });
+}
+function renderDVD(){var shelf=document.getElementById('dvdShelf');var dvds=smartOrderFilms(Object.values(db.films).filter(function(f){return f.dvd;}));document.getElementById('dvdCount').textContent=dvds.length+' DVD(s)';shelf.innerHTML='';if(!dvds.length){shelf.innerHTML='<div style="color:var(--text2);padding:38px;text-align:center;width:100%">Aucun DVD.</div>';return;}dvds.forEach(function(f){var c=document.createElement('div');c.className='dvdCase';c.innerHTML=(f.poster?'<img src="'+f.poster+'">':`<div style="width:68px;height:102px;background:var(--glass);border-radius:6px;display:flex;align-items:center;justify-content:center">📀</div>`)+'<p>'+f.title+'</p>';c.addEventListener('click',function(){openFilmPage(f.id);});shelf.appendChild(c);});}
 
 // ===== ROULETTE =====
-function setRouMode(m,btn){rouMode=m;document.querySelectorAll('.rOpt').forEach(function(b){b.classList.toggle('active',b===btn);});document.getElementById('catSelect').style.display=m==='cat'?'':'none';}
+function setRouMode(m,btn){rouMode=m;document.querySelectorAll('.rOpt').forEach(function(b){b.classList.toggle('active',b===btn);});document.getElementById('catSelect').style.display=m==='cat'?'block':'none';}
 function renderRoulette(){var sel=document.getElementById('catSelect');sel.innerHTML='<option value="">Toutes</option>';db.categories.forEach(function(c,i){sel.innerHTML+='<option value="'+i+'">'+c.name+'</option>';});document.getElementById('rouletteResult').style.display='none';document.getElementById('rouletteTitle').textContent='Quel film ce soir ?';}
 function spinRoulette(){var pool=Object.values(db.films).filter(function(f){return !f.future;});if(rouMode==='cat'){var idx=document.getElementById('catSelect').value;if(idx!=='')pool=pool.filter(function(f){return f.catIdx===parseInt(idx);});}if(!pool.length){toast('Aucun film !');return;}var f=pool[Math.floor(Math.random()*pool.length)];var img=document.getElementById('rouletteResult'),ttl=document.getElementById('rouletteTitle');var sb=document.getElementById('btnSpin');sb.disabled=true;var sp=0;var tick=setInterval(function(){var tmp=pool[Math.floor(Math.random()*pool.length)];ttl.textContent=tmp.title;img.src=tmp.poster||'';img.style.display=tmp.poster?'block':'none';sp++;if(sp>=22){clearInterval(tick);ttl.textContent='🎬 '+f.title;img.src=f.poster||'';img.style.display=f.poster?'block':'none';sb.disabled=false;}},90);}
 
@@ -1407,11 +1603,12 @@ function importDB(input){var file=input.files[0];if(!file)return;var r=new FileR
 </script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script>
 try{
   firebase.initializeApp({apiKey:"AIzaSyAl7bDvJABFxe2LQWovS7Qx-IssxMbXFKo",authDomain:"cinetracker-73ed5.firebaseapp.com",projectId:"cinetracker-73ed5",storageBucket:"cinetracker-73ed5.firebasestorage.app",messagingSenderId:"334659507000",appId:"1:334659507000:web:b56549a1cb91da359927cd"});
   DB_DOC=firebase.firestore().collection('users').doc('main');
-  DB_DOC.get().then(function(snap){if(snap.exists){db=snap.data();purgeOrphanFilms();localStorage.setItem('ct',JSON.stringify(db));var active=document.querySelector('.page.active');if(active&&active.id==='pageMain')renderStats();if(active&&active.id==='pageCollection')renderCollection();if(active&&active.id==='pageLevel')renderLevelPage();toast('☁️ Synchronisé !');}});
+  DB_DOC.get().then(function(snap){if(snap.exists){db=snap.data();purgeOrphanFilms();applyTheme();localStorage.setItem('ct',JSON.stringify(db));var active=document.querySelector('.page.active');if(active&&active.id==='pageMain')renderStats();if(active&&active.id==='pageCollection')renderCollection();if(active&&active.id==='pageLevel')renderLevelPage();toast('☁️ Synchronisé !');}});
   console.log('Firebase OK');
 }catch(e){console.log('Firebase:',e);}
 </script>
