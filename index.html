@@ -37,7 +37,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #btnDVD{background:linear-gradient(135deg,var(--or),var(--rose));}
 #btnTheme{background:linear-gradient(135deg,var(--rose),var(--v2));border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:1.3rem;cursor:pointer;flex-shrink:0;}
 #searchWrap{flex:1;position:relative;}
-#searchInput{width:100%;padding:10px 40px;border-radius:24px;border:1px solid var(--border);background:var(--glass);color:var(--text);font-size:1rem;outline:none;}
+#searchInput{width:100%;padding:10px 16px 10px 40px;border-radius:24px;border:1px solid var(--border);background:var(--glass);color:var(--text);font-size:1rem;outline:none;}
 #searchInput::placeholder{color:var(--text2);}
 #searchIconEl{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);pointer-events:none;}
 #btnCamera{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;}
@@ -74,16 +74,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #colSearchInput{width:100%;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--glass);color:var(--text);outline:none;margin-bottom:8px;}
 #colBody{width:100%;padding:12px 16px;padding-bottom:80px;}
 
-.catTopRow{display:flex;align-items:center;gap:8px;padding:13px 14px;cursor:pointer;background:linear-gradient(90deg,var(--v2),var(--or));border-radius:14px;margin-bottom:10px;border:1px solid var(--border);}
+.catTopRow{display:flex;align-items:center;gap:8px;padding:13px 14px;cursor:pointer;background:linear-gradient(90deg,var(--v2),var(--or));border-radius:14px;margin-bottom:10px;border:1px solid var(--border);min-width:0;}
 .catIconWrap{position:relative;width:38px;height:56px;flex-shrink:0;margin-right:2px;}
 .catIconMain{position:absolute;left:0;top:0;width:38px;height:56px;object-fit:cover;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.35);}
 .catIconPlaceholder{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);font-size:1.1rem;}
 .catIconStack{position:absolute;border-radius:8px;background:rgba(255,255,255,.35);width:32px;height:48px;}
 .catIconStack.s1{left:6px;top:4px;transform:rotate(6deg);}
 .catIconStack.s2{left:-4px;top:2px;transform:rotate(-5deg);}
-.catTopRow .catName{flex:1;font-weight:700;font-size:.97rem;}
-.catTopRow .catDvdCount{font-size:.75rem;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px;}
-.catTopRow .catActions{display:flex;gap:4px;}
+.catTopRow .catName{flex:1;min-width:0;font-weight:700;font-size:.97rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.catTopRow .catDvdCount{flex-shrink:0;font-size:.75rem;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px;}
+.catTopRow .catActions{flex-shrink:0;display:flex;gap:4px;}
 .catTopRow .catBtn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap;}
 
 /* ===== PAGE NIVEAU ===== */
@@ -101,13 +101,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #levelActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px;}
 .levelActBtn{background:linear-gradient(135deg,var(--v2),var(--or));border:none;color:#fff;padding:7px 13px;border-radius:12px;font-size:.8rem;cursor:pointer;}
 .levelActBtn.secondary{background:var(--glass);border:1px solid var(--border);color:var(--text2);}
+.levelActBtn.danger{background:transparent;border:1px solid #d94848;color:#d94848;}
 #levelSearchInput{width:100%;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--glass);color:var(--text);outline:none;margin-top:9px;}
 #levelBody{width:100%;padding:12px 16px;padding-bottom:80px;}
 
-.groupRow{display:flex;align-items:center;gap:8px;padding:11px 13px;cursor:pointer;border-radius:12px;margin-bottom:9px;border:1px solid rgba(255,255,255,.08);}
+.groupRow{display:flex;align-items:center;gap:8px;padding:11px 13px;cursor:pointer;border-radius:12px;margin-bottom:9px;border:1px solid rgba(255,255,255,.08);min-width:0;}
 .groupRow.subCatRow{background:rgba(90,0,128,.22);border-left:3px solid var(--v2);}
 .groupRow.colRow{background:rgba(255,140,0,.12);border-left:3px solid var(--or);}
-.groupRow .groupName{flex:1;font-size:.92rem;font-weight:600;}
+.groupIconWrap{width:28px;height:40px;flex-shrink:0;}
+.groupIconMain{width:28px;height:40px;object-fit:cover;border-radius:6px;}
+.groupIconPlaceholder{display:flex;align-items:center;justify-content:center;background:var(--glass);font-size:.9rem;}
+.groupRow .groupName{flex:1;min-width:0;font-size:.92rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .groupRow .groupDvdCount{font-size:.72rem;color:var(--or2);background:rgba(255,140,0,.15);padding:2px 7px;border-radius:8px;}
 .groupRow .groupActions{display:flex;gap:4px;}
 .groupRow .groupBtn{background:var(--glass);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:4px 8px;font-size:.75rem;cursor:pointer;}
@@ -252,7 +256,7 @@ select option{background:#1a003a;}
   #homeContent h1{font-size:2.2rem;}
   #topBar{padding:9px 11px;gap:7px;}
   #btnRoulette,#btnDVD{width:38px;height:38px;font-size:1.05rem;}
-  #searchInput{font-size:.88rem;padding:8px 34px;}
+  #searchInput{font-size:.88rem;padding:8px 14px 8px 34px;}
   #mainContent{padding:13px;}
   #filmBg{height:155px;}#filmPoster{width:68px;height:102px;bottom:-32px;left:13px;}
   #filmBody{padding:42px 13px 22px;}#filmTitle{font-size:1.05rem;}
@@ -287,7 +291,6 @@ select option{background:#1a003a;}
     <div id="searchWrap">
       <span id="searchIconEl">🔍</span>
       <input id="searchInput" type="text" placeholder="Rechercher un film ou une série...">
-      <button id="btnCamera">📷</button>
       <div id="searchResults"></div>
     </div>
     <button id="btnDVD">📀</button>
@@ -521,12 +524,13 @@ select option{background:#1a003a;}
 
 <script>
 // ===== BRUME =====
-var canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d'),W,H,blobs=[];
+var canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d'),W,H,blobs=[],currentThemeColors=null;
 function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
 resize();window.addEventListener('resize',resize);
-function mb(){return{x:Math.random()*W,y:Math.random()*H,r:120+Math.random()*200,dx:(Math.random()-.5)*.4,dy:(Math.random()-.5)*.3,c:Math.random()<.5?'rgba(196,92,0,':'rgba(90,0,128,',a:.08+Math.random()*.12};}
+function hexToRgbStr(hex){var c=hex.replace('#','');if(c.length===3)c=c.split('').map(function(x){return x+x;}).join('');var r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);return 'rgba('+r+','+g+','+b+',';}
+function mb(){var vars=getComputedStyle(document.documentElement);var c1=hexToRgbStr(currentThemeColors?currentThemeColors.accent:'#c45c00');var c2=hexToRgbStr(currentThemeColors?currentThemeColors.main:'#5a0080');return{x:Math.random()*W,y:Math.random()*H,r:120+Math.random()*200,dx:(Math.random()-.5)*.4,dy:(Math.random()-.5)*.3,c:Math.random()<.5?c1:c2,a:.08+Math.random()*.12};}
 for(var i=0;i<12;i++)blobs.push(mb());
-function drawBG(){ctx.clearRect(0,0,W,H);ctx.fillStyle='#0d0010';ctx.fillRect(0,0,W,H);blobs.forEach(function(b){var g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);g.addColorStop(0,b.c+b.a+')');g.addColorStop(1,b.c+'0)');ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();b.x+=b.dx;b.y+=b.dy;if(b.x<-b.r||b.x>W+b.r||b.y<-b.r||b.y>H+b.r)Object.assign(b,mb());});requestAnimationFrame(drawBG);}
+function drawBG(){ctx.clearRect(0,0,W,H);ctx.fillStyle=currentThemeColors?currentThemeColors.bg:'#0d0010';ctx.fillRect(0,0,W,H);blobs.forEach(function(b){var g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);g.addColorStop(0,b.c+b.a+')');g.addColorStop(1,b.c+'0)');ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();b.x+=b.dx;b.y+=b.dy;if(b.x<-b.r||b.x>W+b.r||b.y<-b.r||b.y>H+b.r)Object.assign(b,mb());});requestAnimationFrame(drawBG);}
 drawBG();
 (function(){var c=document.getElementById('homeParticles');var cols=['rgba(255,140,0,','rgba(255,111,168,','rgba(90,0,128,','rgba(255,200,100,'];for(var i=0;i<18;i++){var p=document.createElement('div');p.className='hParticle';var sz=4+Math.random()*12,col=cols[Math.floor(Math.random()*cols.length)];p.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+Math.random()*100+'%;background:'+col+'0.7);animation-duration:'+(4+Math.random()*8)+'s;animation-delay:'+Math.random()*6+'s;box-shadow:0 0 '+(sz*2)+'px '+col+'0.4);';c.appendChild(p);}})();
 ['https://image.tmdb.org/t/p/w92/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg','https://image.tmdb.org/t/p/w92/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg'].concat(['https://image.tmdb.org/t/p/w92/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg','https://image.tmdb.org/t/p/w92/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg']).forEach(function(u){var img=document.createElement('img');img.className='stripPoster';img.src=u;img.onerror=function(){img.style.display='none';};document.getElementById('filmStrip').appendChild(img);});
@@ -625,6 +629,8 @@ function applyTheme(){
   }
   var root=document.documentElement.style;
   Object.keys(vars).forEach(function(k){root.setProperty('--'+k,vars[k]);});
+  currentThemeColors={bg:vars.bg,main:vars.v2,accent:vars.or};
+  if(typeof blobs!=='undefined'&&W){blobs=[];for(var i=0;i<12;i++)blobs.push(mb());}
 }
 function setPalette(id){db.theme={paletteId:id,roles:null,custom:null};saveDB();applyTheme();renderThemePage();}
 function shuffleThemeRoles(){
@@ -725,7 +731,6 @@ document.querySelectorAll('.modal').forEach(function(m){m.addEventListener('clic
 // ===== BOUTONS =====
 document.getElementById('btnRoulette').addEventListener('click',function(){navigate('pageRoulette');});
 document.getElementById('btnDVD').addEventListener('click',function(){navigate('pageDVD');});
-document.getElementById('btnCamera').addEventListener('click',function(){openScanner();});
 document.getElementById('btnGoCollection').addEventListener('click',function(){navigate('pageCollection');});
 document.getElementById('btnGoRoulette').addEventListener('click',function(){navigate('pageRoulette');});
 document.getElementById('btnMoreRecos').addEventListener('click',function(){recoPage++;loadRecos();});
@@ -1083,27 +1088,23 @@ function renderCollection(){
       (icon?'<img class="catIconMain" src="'+icon+'">':'<div class="catIconMain catIconPlaceholder">🎬</div>')+
       '</div>';
     var row=document.createElement('div');row.className='catTopRow';
-    row.innerHTML=iconHtml+'<span class="catName">'+cat.name+'</span>'+(dvdInfo?'<span class="catDvdCount">'+dvdInfo+'</span>':'')+'<div class="catActions"><button class="catBtn btnCatIcon" data-ci="'+ci+'">🖼️</button>'+(cat.customImg?'<button class="catBtn btnCatIconRevert" data-ci="'+ci+'">↩️</button>':'')+'<button class="catBtn btnRenameTop" data-ci="'+ci+'">✏️</button><button class="catBtn btnDelCatTop" data-ci="'+ci+'">🗑️</button></div>';
+    row.innerHTML=iconHtml+'<span class="catName">'+cat.name+'</span>'+(dvdInfo?'<span class="catDvdCount">'+dvdInfo+'</span>':'')+'<div class="catActions"><button class="catBtn btnRenameTop" data-ci="'+ci+'">✏️</button></div>';
     (function(idx){row.addEventListener('click',function(e){if(e.target.closest('.catActions'))return;openLevel({catIdx:idx,subKey:null,subColKey:null});});})(ci);
     body.appendChild(row);
   });
 
-  body.querySelectorAll('.btnCatIcon').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();setCustomImgPrompt(db.categories[parseInt(btn.getAttribute('data-ci'))]);});});
-  body.querySelectorAll('.btnCatIconRevert').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();revertCustomImg(db.categories[parseInt(btn.getAttribute('data-ci'))]);});});
   body.querySelectorAll('.btnRenameTop').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();openRename('cat',parseInt(btn.getAttribute('data-ci')),null,null);});});
-  body.querySelectorAll('.btnDelCatTop').forEach(function(btn){btn.addEventListener('click',function(e){
-    e.stopPropagation();
-    var ci=parseInt(btn.getAttribute('data-ci'));
-    var cat=db.categories[ci];
-    var allFilms=collectAllFilmsOfCategory(cat);
-    var msg='Supprimer la catégorie "'+cat.name+'"';
-    if(allFilms.length>0)msg+=' et ses '+allFilms.length+' film(s) ?';else msg+=' ?';
-    if(!confirm(msg))return;
-    allFilms.forEach(function(f){if(f)delete db.films[f.id];});
-    db.categories.splice(ci,1);
-    Object.values(db.films).forEach(function(f){if(f.catIdx===ci){f.catIdx=null;f.subKey=null;f.subColKey=null;}else if(f.catIdx>ci)f.catIdx--;});
-    saveDB();renderCollection();
-  });});
+}
+function deleteCatByIdx(ci){
+  var cat=db.categories[ci];
+  var allFilms=collectAllFilmsOfCategory(cat);
+  var msg='Supprimer la catégorie "'+cat.name+'"';
+  if(allFilms.length>0)msg+=' et ses '+allFilms.length+' film(s) ?';else msg+=' ?';
+  if(!confirm(msg))return;
+  allFilms.forEach(function(f){if(f)delete db.films[f.id];});
+  db.categories.splice(ci,1);
+  Object.values(db.films).forEach(function(f){if(f.catIdx===ci){f.catIdx=null;f.subKey=null;f.subColKey=null;}else if(f.catIdx>ci)f.catIdx--;});
+  saveDB();renderCollection();navigateBack();
 }
 
 // ===== ICONES AUTO (dernier/premier film ajouté) =====
@@ -1200,7 +1201,7 @@ function renderLevelPage(){
   var name='',actionsHtml='',breadcrumbHtml='';
   if(type==='cat'){
     ensureCat(cat);name=cat.name;breadcrumbHtml='';
-    actionsHtml='<button class="levelActBtn" id="lvlAddSub">+ 📁 Sous-catégorie</button><button class="levelActBtn" id="lvlAddCol">+ 🎬 Collection</button><button class="levelActBtn secondary" id="lvlSelect">☑️ Sélect.</button>';
+    actionsHtml='<button class="levelActBtn" id="lvlAddSub">+ 📁 Sous-catégorie</button><button class="levelActBtn" id="lvlAddCol">+ 🎬 Collection</button><button class="levelActBtn secondary" id="lvlSelect">☑️ Sélect.</button><button class="levelActBtn danger" id="lvlDeleteCat">🗑️ Supprimer</button>';
   }else if(type==='sub'){
     var sub=getSub();if(!sub){navigateBack();return;}ensureSub(sub);name=sub.name;
     breadcrumbHtml='<span class="bcLink" data-nav="cat">'+cat.name+'</span>';
@@ -1228,6 +1229,7 @@ function renderLevelPage(){
   var addColBtn=document.getElementById('lvlAddCol');if(addColBtn)addColBtn.addEventListener('click',function(){var n=prompt('Nom de la collection :');if(!n||!n.trim())return;ensureCat(cat);cat.collections.push({name:n.trim(),films:[]});saveDB();renderLevelBody();toast('🎬 Créée !');});
   var addSubColBtn=document.getElementById('lvlAddSubCol');if(addSubColBtn)addSubColBtn.addEventListener('click',function(){var sub2=getSub();if(!sub2)return;var n=prompt('Nom de la collection :');if(!n||!n.trim())return;ensureSub(sub2);sub2.collections.push({name:n.trim(),films:[]});saveDB();renderLevelBody();toast('🎬 Créée !');});
   var selectBtn=document.getElementById('lvlSelect');if(selectBtn)selectBtn.addEventListener('click',function(){toggleSelectMode();});
+  var deleteCatBtn=document.getElementById('lvlDeleteCat');if(deleteCatBtn)deleteCatBtn.addEventListener('click',function(){deleteCatByIdx(levelPos.catIdx);});
   document.getElementById('levelSearchInput').oninput=function(){renderLevelBody();};
 }
 
@@ -1247,8 +1249,10 @@ function renderLevelBody(){
       cat.subCategories.forEach(function(sub,si){
         ensureSub(sub);
         var subFilms=collectAllFilmsOfSub(sub);var dvd=getDvdInfo(subFilms);
+        var subIcon=getSubIcon(sub);
+        var subIconHtml='<div class="groupIconWrap">'+(subIcon?'<img class="groupIconMain" src="'+subIcon+'">':'<div class="groupIconMain groupIconPlaceholder">📁</div>')+'</div>';
         var row=document.createElement('div');row.className='groupRow subCatRow';
-        row.innerHTML='<span class="groupName">📁 '+sub.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameSub" data-si="'+si+'">✏️</button><button class="groupBtn btnDelSub" data-si="'+si+'">🗑️</button></div>';
+        row.innerHTML=subIconHtml+'<span class="groupName">'+sub.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameSub" data-si="'+si+'">✏️</button><button class="groupBtn btnDelSub" data-si="'+si+'">🗑️</button></div>';
         (function(idx){row.addEventListener('click',function(e){if(e.target.closest('.groupActions'))return;openLevel({catIdx:levelPos.catIdx,subKey:'sub_'+idx,subColKey:null});});})(si);
         body.appendChild(row);
       });hasContent=true;
@@ -1257,8 +1261,10 @@ function renderLevelBody(){
       addLbl('🎬 Collections');
       cat.collections.forEach(function(coll,coli){
         var collFilms=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);var dvd=getDvdInfo(collFilms);
+        var collIcon=getCollIcon(coll);
+        var collIconHtml='<div class="groupIconWrap">'+(collIcon?'<img class="groupIconMain" src="'+collIcon+'">':'<div class="groupIconMain groupIconPlaceholder">🎬</div>')+'</div>';
         var row=document.createElement('div');row.className='groupRow colRow';
-        row.innerHTML='<span class="groupName">🎬 '+coll.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameCol" data-coli="'+coli+'">✏️</button><button class="groupBtn btnDelCol" data-coli="'+coli+'">🗑️</button></div>';
+        row.innerHTML=collIconHtml+'<span class="groupName">'+coll.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameCol" data-coli="'+coli+'">✏️</button><button class="groupBtn btnDelCol" data-coli="'+coli+'">🗑️</button></div>';
         (function(idx){row.addEventListener('click',function(e){if(e.target.closest('.groupActions'))return;openLevel({catIdx:levelPos.catIdx,subKey:'col_'+idx,subColKey:null});});})(coli);
         body.appendChild(row);
       });hasContent=true;
@@ -1313,8 +1319,10 @@ function renderLevelBody(){
       addLbl('🎬 Collections');
       sub.collections.forEach(function(coll,coli){
         var collFilms=(coll.films||[]).map(function(id){return db.films[id];}).filter(Boolean);var dvd=getDvdInfo(collFilms);
+        var collIcon=getCollIcon(coll);
+        var collIconHtml='<div class="groupIconWrap">'+(collIcon?'<img class="groupIconMain" src="'+collIcon+'">':'<div class="groupIconMain groupIconPlaceholder">🎬</div>')+'</div>';
         var row=document.createElement('div');row.className='groupRow colRow';
-        row.innerHTML='<span class="groupName">🎬 '+coll.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameSubCol" data-coli="'+coli+'">✏️</button><button class="groupBtn btnDelSubCol" data-coli="'+coli+'">🗑️</button></div>';
+        row.innerHTML=collIconHtml+'<span class="groupName">'+coll.name+'</span>'+(dvd?'<span class="groupDvdCount">'+dvd+'</span>':'')+'<div class="groupActions"><button class="groupBtn btnRenameSubCol" data-coli="'+coli+'">✏️</button><button class="groupBtn btnDelSubCol" data-coli="'+coli+'">🗑️</button></div>';
         (function(idx){row.addEventListener('click',function(e){if(e.target.closest('.groupActions'))return;openLevel({catIdx:levelPos.catIdx,subKey:levelPos.subKey,subColKey:'subcol_'+idx});});})(coli);
         body.appendChild(row);
       });hasContent2=true;
