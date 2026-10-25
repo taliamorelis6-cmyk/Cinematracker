@@ -7,10 +7,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CinéTracker">
-<meta name="theme-color" content="#8A5730">
-<link rel="manifest" href="manifest.json?v=2">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
-<link rel="apple-touch-icon" href="icon-192.png?v=2">
+<meta name="theme-color" content="#FDECEF">
+<link rel="manifest" href="manifest.json?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
+<link rel="apple-touch-icon" href="icon-192.png?v=3">
 <style>
 :root{--bg:#0d0010;--v2:#5a0080;--or:#c45c00;--or2:#ff8c00;--rose:#ff6fa8;--blue:#1a6fff;--text:#f5e6ff;--text2:#c9a0e8;--card:rgba(45,0,87,0.55);--glass:rgba(90,0,128,0.25);--border:rgba(255,140,0,0.25);}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -551,7 +551,7 @@ var renameTarget=null;
 var DB_DOC=null;
 var levelPos={catIdx:null,subKey:null,subColKey:null};
 
-function saveDB(){localStorage.setItem('ct',JSON.stringify(db));if(DB_DOC)DB_DOC.set(db).catch(function(){});}
+function saveDB(){localStorage.setItem('ct',JSON.stringify(db));if(DB_DOC){localStorage.setItem('ct_dirty','1');DB_DOC.set(db).then(function(){localStorage.removeItem('ct_dirty');}).catch(function(){});}else if(navigator.onLine===false){localStorage.setItem('ct_dirty','1');}}
 function loadDB(){try{var s=localStorage.getItem('ct');if(s)db=JSON.parse(s);}catch(e){}}
 
 // ===== NETTOYAGE FILMS FANTÔMES =====
@@ -640,6 +640,7 @@ function applyTheme(){
   var root=document.documentElement.style;
   Object.keys(vars).forEach(function(k){root.setProperty('--'+k,vars[k]);});
   currentThemeColors={bg:vars.bg,main:vars.v2,accent:vars.or};
+  var tcMeta=document.querySelector('meta[name="theme-color"]');if(tcMeta)tcMeta.setAttribute('content',vars.bg);
   if(typeof blobs!=='undefined'&&W){blobs=[];for(var i=0;i<12;i++)blobs.push(mb());}
 }
 function setPalette(id){db.theme={paletteId:id,roles:null,custom:null};saveDB();applyTheme();renderThemePage();}
@@ -1630,9 +1631,32 @@ function importDB(input){var file=input.files[0];if(!file)return;var r=new FileR
 try{
   firebase.initializeApp({apiKey:"AIzaSyAl7bDvJABFxe2LQWovS7Qx-IssxMbXFKo",authDomain:"cinetracker-73ed5.firebaseapp.com",projectId:"cinetracker-73ed5",storageBucket:"cinetracker-73ed5.firebasestorage.app",messagingSenderId:"334659507000",appId:"1:334659507000:web:b56549a1cb91da359927cd"});
   DB_DOC=firebase.firestore().collection('users').doc('main');
-  DB_DOC.get().then(function(snap){if(snap.exists){db=snap.data();purgeOrphanFilms();applyTheme();localStorage.setItem('ct',JSON.stringify(db));var active=document.querySelector('.page.active');if(active&&active.id==='pageMain')renderStats();if(active&&active.id==='pageCollection')renderCollection();if(active&&active.id==='pageLevel')renderLevelPage();toast('☁️ Synchronisé !');}});
+  DB_DOC.get().then(function(snap){if(localStorage.getItem('ct_dirty')==='1'){DB_DOC.set(db).then(function(){localStorage.removeItem('ct_dirty');}).catch(function(){});return;}if(snap.exists){db=snap.data();purgeOrphanFilms();applyTheme();localStorage.setItem('ct',JSON.stringify(db));var active=document.querySelector('.page.active');if(active&&active.id==='pageMain')renderStats();if(active&&active.id==='pageCollection')renderCollection();if(active&&active.id==='pageLevel')renderLevelPage();toast('☁️ Synchronisé !');}});
   console.log('Firebase OK');
 }catch(e){console.log('Firebase:',e);}
+</script>
+<script>
+// Mode hors connexion : le petit fichier sw.js garde le site et les affiches en mémoire
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
+}
+// Une fois de temps en temps (en ligne), on charge les affiches de la collection (DVD en premier)
+// pour qu'elles soient disponibles ensuite sans connexion.
+window.addEventListener('load',function(){setTimeout(function(){
+  try{
+    if(navigator.onLine===false||!('serviceWorker' in navigator))return;
+    var last=parseInt(localStorage.getItem('ct_warm')||'0',10);
+    if(Date.now()-last<6*3600*1000)return;
+    var films=Object.values(db.films||{}).filter(function(f){return f&&f.poster;});
+    films.sort(function(a,b){return (b.dvd?1:0)-(a.dvd?1:0);});
+    var urls=films.map(function(f){return f.poster;}),i=0;
+    (function next(){
+      if(i>=urls.length){localStorage.setItem('ct_warm',String(Date.now()));return;}
+      var batch=urls.slice(i,i+6),n=0;i+=6;
+      batch.forEach(function(u){var im=new Image();im.onload=im.onerror=function(){if(++n===batch.length)setTimeout(next,300);};im.src=u;});
+    })();
+  }catch(e){}
+},4000);});
 </script>
 </body>
 </html>
