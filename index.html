@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CinéTracker">
-<meta name="theme-color" content="#FDECEF">
+<meta name="theme-color" content="#43202E">
 <link rel="manifest" href="manifest.json?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
 <link rel="apple-touch-icon" href="icon-192.png?v=3">
@@ -18,20 +18,22 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;mi
 #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .page{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;align-items:stretch;overflow-y:auto;}
 .page.active{display:flex;}
-#pageHome{align-items:center;justify-content:center;cursor:pointer;}
+#pageHome{align-items:center;justify-content:center;cursor:pointer;background:radial-gradient(circle at 50% 38%,#6B2E45 0%,#43202E 72%);}
 #pageRoulette{align-items:center;justify-content:center;}
 #pageFilm{display:none!important;}
 #pageFilm.active{display:block!important;overflow-y:auto;}
-#homeContent{text-align:center;pointer-events:none;z-index:2;}
-#homeContent h1{font-size:3.5rem;font-weight:900;background:linear-gradient(135deg,var(--or2),var(--rose),var(--v2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;}
-#homeContent p{color:var(--text2);margin-top:.5rem;}
-#homeContent .hint{margin-top:2rem;font-size:.85rem;color:var(--or);animation:pulse 2s infinite;}
+#homeContent{text-align:center;pointer-events:none;z-index:2;padding:0 1.2rem;}
+#homeArt{width:min(58vw,250px);margin:0 auto 1rem;}
+#homeArt svg{width:100%;height:auto;display:block;overflow:visible;}
+.hT1{color:#FDECEF;}.hT2{color:#E8A96E;}
+#homeContent h1{font-size:2.8rem;font-weight:700;letter-spacing:1px;}
+#homeContent p{color:#E3BDB9;margin-top:.5rem;}
+#homeContent .hint{margin-top:2rem;font-size:.85rem;color:#E8A96E;letter-spacing:.5px;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
 #homeParticles{position:fixed;inset:0;pointer-events:none;z-index:1;}
 .hParticle{position:absolute;border-radius:50%;animation:floatP linear infinite;}
 @keyframes floatP{0%{transform:translateY(100vh) scale(0);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(-10vh) scale(1.2);opacity:0;}}
-#filmStrip{position:fixed;bottom:0;left:0;right:0;display:flex;gap:6px;padding:8px;overflow:hidden;pointer-events:none;z-index:1;mask-image:linear-gradient(to right,transparent,black 10%,black 90%,transparent);}
-.stripPoster{width:60px;height:90px;object-fit:cover;border-radius:6px;opacity:.3;flex-shrink:0;filter:saturate(.5);}
+#filmStrip{position:fixed;bottom:0;left:0;right:0;height:36px;pointer-events:none;z-index:1;background:#2A1119 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='36'%3E%3Crect x='3' y='5' width='6' height='4.5' rx='1' fill='%23E8A96E' fill-opacity='.7'/%3E%3Crect x='3' y='26.5' width='6' height='4.5' rx='1' fill='%23E8A96E' fill-opacity='.7'/%3E%3C/svg%3E") repeat-x;}
 #topBar{width:100%;display:flex;align-items:center;gap:12px;padding:16px 20px;background:rgba(13,0,16,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
 #btnRoulette,#btnDVD{background:linear-gradient(135deg,var(--v2),var(--or));border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:1.3rem;cursor:pointer;flex-shrink:0;}
 #btnDVD{background:linear-gradient(135deg,var(--or),var(--rose));}
@@ -277,9 +279,27 @@ select option{background:#1a003a;}
 <div id="pageHome" class="page active">
   <div id="homeParticles"></div>
   <div id="homeContent">
-    <h1>🎬 CinéTracker</h1>
-    <p>Votre univers cinématographique personnel</p>
-    <div class="hint">✨ Cliquez n'importe où pour entrer ✨</div>
+    <div id="homeArt">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="56" r="40" fill="#E8A96E" opacity="0.1"/>
+        <ellipse cx="50" cy="90" rx="38" ry="4" fill="#2A1119" opacity="0.6"/>
+        <circle cx="62" cy="30" r="20" fill="#5A2A3C" stroke="#E8A96E" stroke-width="2"/>
+        <circle cx="62" cy="30" r="15" fill="none" stroke="#E8879A" stroke-opacity="0.6" stroke-width="1.1"/>
+        <g><path d="M62 15.5 A14.5 14.5 0 0 1 75 23" fill="none" stroke="#FDECEF" stroke-opacity="0.4" stroke-width="1.6" stroke-linecap="round"/>
+          <animateTransform attributeName="transform" type="rotate" from="0 62 30" to="360 62 30" dur="8s" repeatCount="indefinite"/></g>
+        <circle cx="62" cy="30" r="5" fill="#FDECEF" fill-opacity="0.22" stroke="#E8A96E" stroke-width="1.2"/>
+        <circle cx="62" cy="30" r="2" fill="#43202E"/>
+        <g transform="translate(0 6)">
+          <g transform="rotate(-2 50 69)"><rect x="16" y="62" width="68" height="16" rx="2.5" fill="#E8879A" stroke="#E8A96E" stroke-width="1.5"/><rect x="16" y="62" width="9" height="16" rx="2.5" fill="#43202E" opacity="0.3"/><g stroke="#43202E" stroke-opacity="0.6" stroke-width="1.6" stroke-linecap="round"><line x1="30" y1="67" x2="58" y2="67"/><line x1="30" y1="73" x2="48" y2="73"/></g><circle cx="75" cy="70" r="3" fill="#43202E" opacity="0.5"/></g>
+          <g transform="rotate(1.5 50 53)"><rect x="20" y="45" width="64" height="16" rx="2.5" fill="#E8A96E" stroke="#F8D9A0" stroke-width="1.2"/><rect x="20" y="45" width="9" height="16" rx="2.5" fill="#43202E" opacity="0.3"/><g stroke="#43202E" stroke-opacity="0.6" stroke-width="1.6" stroke-linecap="round"><line x1="34" y1="50" x2="64" y2="50"/><line x1="34" y1="56" x2="52" y2="56"/></g><circle cx="76" cy="53" r="3" fill="#43202E" opacity="0.5"/></g>
+          <g transform="rotate(-3 47 37)"><rect x="14" y="29" width="66" height="16" rx="2.5" fill="#F6D3DA" stroke="#E8A96E" stroke-width="1.2"/><rect x="14" y="29" width="9" height="16" rx="2.5" fill="#43202E" opacity="0.25"/><g stroke="#43202E" stroke-opacity="0.6" stroke-width="1.6" stroke-linecap="round"><line x1="28" y1="34" x2="58" y2="34"/><line x1="28" y1="40" x2="46" y2="40"/></g><circle cx="70" cy="37" r="3" fill="#43202E" opacity="0.5"/></g>
+        </g>
+        <path d="M86 12 Q86 18 92 18 Q86 18 86 24 Q86 18 80 18 Q86 18 86 12z" fill="#F8D9A0"><animate attributeName="opacity" values="1;0.25;1" dur="2.6s" repeatCount="indefinite"/></path>
+      </svg>
+    </div>
+    <h1><span class="hT1">Ciné</span><span class="hT2">Tracker</span></h1>
+    <p>Ma collection de films, toujours avec moi</p>
+    <div class="hint">Touchez pour entrer</div>
   </div>
   <div id="filmStrip"></div>
 </div>
@@ -532,8 +552,7 @@ function mb(){var vars=getComputedStyle(document.documentElement);var c1=hexToRg
 for(var i=0;i<12;i++)blobs.push(mb());
 function drawBG(){ctx.clearRect(0,0,W,H);ctx.fillStyle=currentThemeColors?currentThemeColors.bg:'#0d0010';ctx.fillRect(0,0,W,H);blobs.forEach(function(b){var g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);g.addColorStop(0,b.c+b.a+')');g.addColorStop(1,b.c+'0)');ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();b.x+=b.dx;b.y+=b.dy;if(b.x<-b.r||b.x>W+b.r||b.y<-b.r||b.y>H+b.r)Object.assign(b,mb());});requestAnimationFrame(drawBG);}
 drawBG();
-(function(){var c=document.getElementById('homeParticles');var cols=['rgba(255,140,0,','rgba(255,111,168,','rgba(90,0,128,','rgba(255,200,100,'];for(var i=0;i<18;i++){var p=document.createElement('div');p.className='hParticle';var sz=4+Math.random()*12,col=cols[Math.floor(Math.random()*cols.length)];p.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+Math.random()*100+'%;background:'+col+'0.7);animation-duration:'+(4+Math.random()*8)+'s;animation-delay:'+Math.random()*6+'s;box-shadow:0 0 '+(sz*2)+'px '+col+'0.4);';c.appendChild(p);}})();
-['https://image.tmdb.org/t/p/w92/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg','https://image.tmdb.org/t/p/w92/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg'].concat(['https://image.tmdb.org/t/p/w92/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg','https://image.tmdb.org/t/p/w92/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg']).forEach(function(u){var img=document.createElement('img');img.className='stripPoster';img.src=u;img.onerror=function(){img.style.display='none';};document.getElementById('filmStrip').appendChild(img);});
+(function(){var c=document.getElementById('homeParticles');var cols=['rgba(232,169,110,','rgba(232,135,154,','rgba(248,217,160,','rgba(232,169,110,'];for(var i=0;i<18;i++){var p=document.createElement('div');p.className='hParticle';var sz=4+Math.random()*12,col=cols[Math.floor(Math.random()*cols.length)];p.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+Math.random()*100+'%;background:'+col+'0.7);animation-duration:'+(4+Math.random()*8)+'s;animation-delay:'+Math.random()*6+'s;box-shadow:0 0 '+(sz*2)+'px '+col+'0.4);';c.appendChild(p);}})();
 document.getElementById('pageHome').addEventListener('click',function(){enterApp();});
 
 // ===== STATE =====
@@ -587,7 +606,8 @@ var PALETTES=[
   {id:'rose',name:'Rosé vintage',swatches:['#FDECEF','#8A5730','#E8879A'],base:{bg:'#FDECEF',main:'#8A5730',accent:'#E8879A'}},
   {id:'orange',name:'Terracotta doux',swatches:['#FCEFE3','#8A4A1E','#F0B36B'],base:{bg:'#FCEFE3',main:'#8A4A1E',accent:'#F0B36B'}},
   {id:'violet',name:'Lilas poudré',swatches:['#F3EDF7','#5C3E70','#C9A8DE'],base:{bg:'#F3EDF7',main:'#5C3E70',accent:'#C9A8DE'}},
-  {id:'bleu',name:'Ciel glacé',swatches:['#EAF2F8','#2E4E66','#8FC0DB'],base:{bg:'#EAF2F8',main:'#2E4E66',accent:'#8FC0DB'}}
+  {id:'bleu',name:'Ciel glacé',swatches:['#EAF2F8','#2E4E66','#8FC0DB'],base:{bg:'#EAF2F8',main:'#2E4E66',accent:'#8FC0DB'}},
+  {id:'logo',name:'Bordeaux & abricot',swatches:['#43202E','#5A2A3C','#E8879A','#E8A96E'],vars:{bg:'#43202E',card:'#5A2A3C',glass:'rgba(253,236,239,0.08)',border:'rgba(232,169,110,0.30)',text:'#FDECEF',text2:'#E3BDB9',v2:'#A8445F',or:'#A8652F',or2:'#E8A96E',rose:'#E8879A',blue:'#F6D3DA'}}
 ];
 function mixHex(hex,pct,towards){ // lighten/darken helper, towards 'white' or 'black'
   var c=hex.replace('#',''),r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
@@ -640,13 +660,13 @@ function applyTheme(){
   var root=document.documentElement.style;
   Object.keys(vars).forEach(function(k){root.setProperty('--'+k,vars[k]);});
   currentThemeColors={bg:vars.bg,main:vars.v2,accent:vars.or};
-  var tcMeta=document.querySelector('meta[name="theme-color"]');if(tcMeta)tcMeta.setAttribute('content',vars.bg);
+  var tcMeta=document.querySelector('meta[name="theme-color"]');var homeEl=document.getElementById('pageHome');if(tcMeta&&!(homeEl&&homeEl.classList.contains('active')))tcMeta.setAttribute('content',vars.bg);
   if(typeof blobs!=='undefined'&&W){blobs=[];for(var i=0;i<12;i++)blobs.push(mb());}
 }
 function setPalette(id){db.theme={paletteId:id,roles:null,custom:null};saveDB();applyTheme();renderThemePage();}
 function shuffleThemeRoles(){
   var p=PALETTES.find(function(x){return x.id===(db.theme&&db.theme.paletteId);});
-  if(!p||!p.base)return;
+  if(!p||!p.base){toast('Ce thème est fixe : pas de mélange');return;}
   // la couleur "bg" du départ est toujours pâle : elle ne doit jamais finir sur le rôle "texte"
   // (sinon texte quasi invisible sur les cartes blanches). Le texte pioche parmi main/accent.
   var textChoices=['main','accent'];
@@ -729,6 +749,7 @@ window.addEventListener('popstate',function(){navigateBack();});
 function showPage(id){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');p.style.display='none';});
   var el=document.getElementById(id);el.classList.add('active');
+  var tcm=document.querySelector('meta[name="theme-color"]');if(tcm)tcm.setAttribute('content',id==='pageHome'?'#43202E':(currentThemeColors?currentThemeColors.bg:'#FDECEF'));
   if(id==='pageFilm')el.style.display='block';
   else if(id==='pageHome'||id==='pageRoulette'||id==='pageTheme'){el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';}
   else{el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='stretch';}
